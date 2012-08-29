@@ -16,6 +16,8 @@ Gem::Specification.new do |gem|
   gem.executables = `git ls-files -- script/*`.split("\n").map {|e| e[7..-1] }
   gem.test_files  = `git ls-files -- spec/*`  .split("\n")
 
+  gem.add_dependency 'macaddr', '~> 1'
+
   gem.add_development_dependency 'bundler'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'guard'
