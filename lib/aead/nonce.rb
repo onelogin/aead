@@ -43,6 +43,10 @@ class AEAD::Nonce
     end
   end
 
+  def pop
+    self.take(1).first
+  end
+
   protected
 
   attr_accessor :hardware_id
