@@ -13,6 +13,7 @@ Gem::Specification.new do |gem|
 
   gem.bindir      = 'script'
   gem.files       = `git ls-files`            .split("\n")
+  gem.extensions  = `git ls-files -- ext/*.rb`.split("\n")
   gem.executables = `git ls-files -- script/*`.split("\n").map {|e| e[7..-1] }
   gem.test_files  = `git ls-files -- spec/*`  .split("\n")
 
