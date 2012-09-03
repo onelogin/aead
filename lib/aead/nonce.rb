@@ -5,95 +5,112 @@ require 'pathname'
 require 'securerandom'
 
 class AEAD::Nonce
-  include Enumerable
+  # Number of octets in the counter field.
+  COUNTER_OCTET_SIZE = 4
 
-  # Number of nonces to reserve between statefile updates
-  COUNTER_BATCH_SIZE = 1
+  # Initial value of the counter field (4 octets zeroed out)
+  COUNTER_INITIAL_VALUE = '%08x' % 0
 
-  # MAC addresses are 48 octets long
-  MAC_ADDRESS_OCTETS = 48 / 8
+  # Maximum possible value of the counter before rolling over (4
+  # octets all set to one).
+  COUNTER_MAXIMUM_VALUE = '%08x' % (2 ** (COUNTER_OCTET_SIZE * 8) - 1)
+
+  # Number of nonces to reserve between state file updates. 256 is
+  # convenient in that it leads to pleasant state files and represents
+  # a reasonable medium between frequent file locks and wasted
+  # nonce values when the process terminates.
+  COUNTER_BATCH_SIZE = 0xff
 
   # The LSB of the most-significant octet of the MAC is the multicast
   # bit, and should be set on generated MAC addresses to distinguish
   # them from real ones
   MAC_MULTICAST_MASK = 0x010000000000
 
-  # The statefile should not be configurable. All machines should
-  # share the same state file.
-  STATEFILE = Pathname.new('/var/tmp/ruby-aead').expand_path
+  # The statefile is not configurable. All processes on a single
+  # machine must share the same state file.
+  STATE_FILE = Pathname.new('/var/tmp/ruby-aead').expand_path
 
-  # Packed format of the nonce state. From MSB to LSB:
+  # Packed format of the nonce state. As recommended by RFC 5116. From
+  # MSB to LSB:
   #   octets 0 - 8 : fixed (hardware id + random id)
   #   octets 9 - 12: counter
   PACK_FORMAT = "H12 H4 H8"
 
-  # String format of the nonce state.
-  STRING_FORMAT = "%012x %04x %08x"
-
   def initialize
-    self.refresh_state! do
-      [ self.mac_address, SecureRandom.hex(2), 0.to_s ]
-    end
+    self.state_file = STATE_FILE
   end
 
-  def each
-    loop do
-      self.increment_counter!
-      yield self.state.pack(PACK_FORMAT)
-    end
+  def initialize_copy(other)
+    @_state = nil
   end
 
-  def pop
-    self.take(1).first
+  def shift(count = nil)
+    return self.state.pack(PACK_FORMAT) if count.nil?
+
+    count.times.map do
+      self.state.pack(PACK_FORMAT)
+    end
   end
 
   protected
 
-  attr_accessor :hardware_id
-  attr_accessor :random_id
-  attr_accessor :counter
-  attr_accessor :counter_limit
+  attr_accessor :state_file
 
-  def mac_address
-    mac_address_real or mac_address_pseudo
-  end
+  def state
+    @_state ||= load_state
+    @_state[0..2]
+  ensure
+    raise if $!
 
-  def refresh_state!
-    open_statefile do |io|
-      self.state = io.eof? ? yield : io.read.unpack(PACK_FORMAT)
-
-      io.rewind
-      io.write self.state(self.counter_limit).pack(PACK_FORMAT)
-    end
-  end
-
-  def increment_counter!
-    self.refresh_state! if (self.counter += 1) >= self.counter_limit
-  end
-
-  def state=(state)
-    self.hardware_id   = state[0].hex
-    self.random_id     = state[1].hex
-    self.counter       = state[2].hex
-    self.counter_limit = self.counter + COUNTER_BATCH_SIZE
-  end
-
-  def state(counter = self.counter)
-    (STRING_FORMAT % [ self.hardware_id, self.random_id, counter ]).split(' ')
+    @_state = bump_state(@_state.dup)
+    @_state = load_state if (@_state[2].hex > @_state[3].hex)
   end
 
   private
 
-  def mac_address_real
-    Mac.addr.tr(':-', '') rescue nil
+  def init_state
+    [ mac_address, SecureRandom.hex(2), COUNTER_INITIAL_VALUE ]
   end
 
-  def mac_address_pseudo
-    SecureRandom.hex(48 / 8) | MAC_MULTICAST_MASK
+  def load_state
+    open_state_file do |io|
+      bytes    = io.read
+      state    =
+        bytes.bytesize == 12 ? bump_state(bytes.unpack(PACK_FORMAT)) :
+        bytes.bytesize ==  0 ? init_state                            :
+        nil
+
+      if state.nil?
+        raise SecurityError,
+          "nonce state file corrupt, MANUAL REPAIR REQUIRED, DO NOT RM"
+      end
+
+      state[3] = bump_counter(state[2], COUNTER_BATCH_SIZE)
+      output   = (state[0..1] << state[3]).pack(PACK_FORMAT)
+
+      io.rewind
+      io.write output
+
+      state
+    end
   end
 
-  def open_statefile
-    STATEFILE.open(File::CREAT | File::RDWR, 0600) do |io|
+  def bump_state(state)
+    raise SecurityError, "nonce counter has reached maximum value" if
+      COUNTER_MAXIMUM_VALUE.hex < state[2].hex
+
+    state[2] = bump_counter state[2], 1
+    state
+  end
+
+  def bump_counter(counter, increment)
+    "%08x" % (counter.hex + increment)
+  end
+
+ private
+
+  def open_state_file
+    self.state_file.open(File::CREAT | File::RDWR, 0600) do |io|
       begin
         io.flock File::LOCK_EX
         yield io
@@ -102,5 +119,17 @@ class AEAD::Nonce
         io.flock File::LOCK_UN
       end
     end
+  end
+
+  def mac_address
+    mac_address_real or mac_address_pseudo
+  end
+
+  def mac_address_real
+    Mac.addr.tr(':-', '') rescue nil
+  end
+
+  def mac_address_pseudo
+    SecureRandom.hex(48 / 8) | MAC_MULTICAST_MASK
   end
 end

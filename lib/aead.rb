@@ -24,11 +24,11 @@ module AEAD
   end
 
   def generate_nonce
-    _nonces.pop
+    _nonces.shift
   end
 
   def generate_nonces(count)
-    _nonces.take(count)
+    _nonces.shift(count)
   end
 
   def aes_256_ctr_hmac_sha_256_encrypt(key, nonce, aad, plaintext)
