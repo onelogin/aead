@@ -1,5 +1,8 @@
 require 'aead'
 
+require 'openssl'
+require 'openssl/cipher/aead'
+
 class AEAD::Cipher
   # Recommended nonce length per RFC 5116
   #   http://tools.ietf.org/pdf/rfc5116.pdf
@@ -20,11 +23,11 @@ class AEAD::Cipher
   end
 
   def encrypt(&block)
-    self.perform!(:encrypt, &block)
+    self.perform!(:encrypt, nil, &block)
   end
 
-  def decrypt(&block)
-    self.perform!(:decrypt, &block)
+  def decrypt(tag = nil, &block)
+    self.perform!(:decrypt, tag, &block)
   end
 
   protected
@@ -35,23 +38,24 @@ class AEAD::Cipher
   attr_accessor :aad
   attr_accessor :tag
 
-  def perform!(direction)
+  def perform!(direction, tag)
     case direction
       when :encrypt then self.cipher.encrypt
       when :decrypt then self.cipher.decrypt
       else raise ArgumentError, 'cipher must be used to encrypt or decrypt'
     end
 
-    self.cipher.key = key
-    self.cipher.iv  = nonce.rjust(self.cipher.iv_len, "\0")
-    self.cipher.tag = tag if tag
-    self.cipher.aad = aad if aad
+    self.cipher.key      = key
+    self.cipher.iv       = nonce.rjust(self.cipher.iv_len, "\0")
+    self.cipher.gcm_tag  = tag if tag
+    self.cipher.aad      = aad if aad
 
-    yield self.cipher.tap { self.reset! }
+    yield self.cipher
+  ensure
+    self.reset!
   end
 
   def reset!
     self.cipher.reset
-    self.cipher = nil
   end
 end
