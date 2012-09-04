@@ -129,7 +129,7 @@ ossl_cipher_verify(VALUE self)
     if (!EVP_CipherUpdate(ctx, NULL, &out_len, NULL, 0))
         ossl_raise(eCipherError, "ciphertext failed authentication step");
 
-    return self;
+    return rb_str_new(0, 0);
 }
 
 void
