@@ -69,5 +69,15 @@ describe AEAD::Nonce do
   end
 
   it 'must reserve chunks of nonces in the state file' do
+    subject.shift # prime the state_file
+
+    self.state_file.open('rb') do |io|
+      io.read.must_equal subject.shift(subject.class::COUNTER_BATCH_SIZE).last
+      io.rewind
+
+      subject.shift
+
+      io.read.must_equal subject.shift(subject.class::COUNTER_BATCH_SIZE).last
+    end
   end
 end
