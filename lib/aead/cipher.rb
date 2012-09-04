@@ -5,8 +5,6 @@ class AEAD::Cipher
   #   http://tools.ietf.org/pdf/rfc5116.pdf
   NONCE_BYTES = 12
 
-  # TODO: AAD set to nil or empty string?
-  # TODO: nil tag vs blank
   def initialize(algorithm, key, nonce, aad = nil, tag = nil)
     self.cipher = OpenSSL::Cipher.new(algorithm)
     self.key    = key
