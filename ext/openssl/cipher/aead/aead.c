@@ -103,7 +103,7 @@ ossl_cipher_set_tag(VALUE self, VALUE data)
 {
     EVP_CIPHER_CTX *ctx;
     char           *in     = NULL;
-    char            in_len = 0;
+    int             in_len = 0;
 
     StringValue(data);
 
@@ -133,7 +133,7 @@ ossl_cipher_verify(VALUE self)
 }
 
 void
-Init_ossl_aead(void)
+Init_aead(void)
 {
     VALUE mOSSL       = rb_define_module("OpenSSL");
     VALUE mOSSLCipher = rb_define_class_under(mOSSL, "Cipher", rb_cObject);
@@ -141,8 +141,8 @@ Init_ossl_aead(void)
 
     eCipherError = rb_define_class_under(mOSSLCipher, "CipherError", eOSSLError);
 
-    rb_define_method(mOSSLCipher, "aad=",   ossl_cipher_set_aad, 1);
-    rb_define_method(mOSSLCipher, "tag",    ossl_cipher_get_tag, 0);
-    rb_define_method(mOSSLCipher, "tag=",   ossl_cipher_set_tag, 1);
-    rb_define_method(mOSSLCipher, "verify", ossl_cipher_verify,  0);
+    rb_define_method(mOSSLCipher, "aad=",     ossl_cipher_set_aad, 1);
+    rb_define_method(mOSSLCipher, "gcm_tag",  ossl_cipher_get_tag, 0);
+    rb_define_method(mOSSLCipher, "gcm_tag=", ossl_cipher_set_tag, 1);
+    rb_define_method(mOSSLCipher, "verify",   ossl_cipher_verify,  0);
 }
