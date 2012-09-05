@@ -56,7 +56,7 @@ module AEAD
 
   def aes_256_gcm_encrypt(key, nonce, aad, plaintext)
     AEAD::Cipher.new('aes-256-gcm', key, nonce, aad).encrypt do |cipher|
-      cipher.update(plaintext) + cipher.final + cipher.tag
+      cipher.update(plaintext) + cipher.final + cipher.gcm_tag
     end
   end
 
@@ -64,7 +64,7 @@ module AEAD
     tag        = ciphertext[ -16 ..  -1 ].to_s
     ciphertext = ciphertext[   0 .. -17 ].to_s
 
-    AEAD::Cipher.new('aes-256-gcm', key, nonce, aad, tag).decrypt do |cipher|
+    AEAD::Cipher.new('aes-256-gcm', key, nonce, aad).decrypt(tag) do |cipher|
       cipher.update(ciphertext).tap { cipher.verify }
     end
   end
