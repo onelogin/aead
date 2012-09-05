@@ -8,12 +8,11 @@ class AEAD::Cipher
   #   http://tools.ietf.org/pdf/rfc5116.pdf
   NONCE_BYTES = 12
 
-  def initialize(algorithm, key, nonce, aad = nil, tag = nil)
+  def initialize(algorithm, key, nonce, aad = nil)
     self.cipher = OpenSSL::Cipher.new(algorithm)
     self.key    = key
     self.nonce  = nonce
     self.aad    = aad
-    self.tag    = tag
 
     raise ArgumentError, "key must be #{cipher.key_len} bytes" unless
       key.bytesize == cipher.key_len
@@ -36,7 +35,6 @@ class AEAD::Cipher
   attr_accessor :key
   attr_accessor :nonce
   attr_accessor :aad
-  attr_accessor :tag
 
   def perform!(direction, tag)
     self.cipher.send(direction)
