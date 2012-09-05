@@ -3,6 +3,9 @@ require 'aead'
 require 'openssl'
 require 'openssl/cipher/aead'
 
+#
+# Wraps AEAD ciphers in a simplified interface.
+#
 class AEAD::Cipher
   # Recommended nonce length per RFC 5116
   #   http://tools.ietf.org/pdf/rfc5116.pdf

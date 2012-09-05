@@ -4,6 +4,9 @@ require 'macaddr'
 require 'pathname'
 require 'securerandom'
 
+#
+# Generates RFC 5114-compliant nonces.
+#
 class AEAD::Nonce
   # Number of octets in the counter field.
   COUNTER_OCTET_SIZE = 4
