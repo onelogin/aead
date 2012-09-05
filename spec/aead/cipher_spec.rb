@@ -33,7 +33,7 @@ describe AEAD::Cipher do
 
     # change it by a random offset that won't loop back around to its
     # original value
-    offset = SecureRandom.random_number(254)
+    offset = SecureRandom.random_number(254) + 1
     ord    = bytes[index].ord
     byte   = (ord + offset).modulo(256).chr
 
