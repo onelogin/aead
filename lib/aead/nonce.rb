@@ -32,7 +32,7 @@ class AEAD::Nonce
 
   # Packed format of the nonce state. As recommended by RFC 5116. From
   # MSB to LSB:
-  #   octets 0 - 8 : fixed (hardware id + random id)
+  #   octets 1 - 8 : fixed (hardware id + random id)
   #   octets 9 - 12: counter
   PACK_FORMAT = "H12 H4 H8"
 
@@ -68,10 +68,21 @@ class AEAD::Nonce
 
   private
 
+  #
+  # Returns the initial state value:
+  #  * Octets 1 -  6: MAC address
+  #  * Octets 7 -  8: Random identifier
+  #  * Octets 9 - 12: Zeroed out counter
+  #
   def init_state
     [ mac_address, SecureRandom.hex(2), COUNTER_INITIAL_VALUE ]
   end
 
+  #
+  # Loads the state from the state file, reserving
+  # `COUNTER_BATCH_SIZE` nonces in the state file between
+  # invocations.
+  #
   def load_state
     open_state_file do |io|
       bytes    = io.read
