@@ -91,17 +91,15 @@ class AEAD::Nonce
         bytes.bytesize ==  0 ? init_state                            :
         nil
 
-      raise SecurityError,
-        "nonce state file corrupt, MANUAL REPAIR REQUIRED, DO NOT RM" unless
-          state
+      _verify_nonce_state(state)
+      _verify_nonce_mac(state)
 
-      raise SecurityError,
-        "nonce state file must not be copied from another machine" unless
-          mac_addresses_real.include?(state.first) or
-          state.first.hex & MAC_MULTICAST_MASK != 0
-
+      # set the (dummmy) fourth field to the maximum counter in the batch
       state[3] = bump_counter(state[2], COUNTER_BATCH_SIZE)
-      output   = (state[0..1] << state[3]).pack(PACK_FORMAT)
+
+      # write out the current state, using the maximum batch counter
+      # instead of the counter's current value
+      output = (state[0..1] << state[3]).pack(PACK_FORMAT)
 
       io.rewind
       io.write output
@@ -111,8 +109,7 @@ class AEAD::Nonce
   end
 
   def bump_state(state)
-    raise SecurityError, "nonce counter has reached maximum value" if
-      COUNTER_MAXIMUM_VALUE.hex < state[2].hex
+    _verify_nonce_below_maximum_value(state)
 
     state[2] = bump_counter state[2], 1
     state
@@ -150,5 +147,26 @@ class AEAD::Nonce
 
   def mac_address_pseudo
     (SecureRandom.hex(48 / 8).hex | MAC_MULTICAST_MASK).to_s(16)
+  end
+
+  def _verify_nonce_state(state)
+    return if state
+
+    raise SecurityError,
+      "nonce state file corrupt; MANUAL REPAIR REQUIRED, DO NOT RM"
+  end
+
+  def _verify_nonce_mac(state)
+    return if
+      mac_addresses_real.include?(state.first) or
+      state.first.hex & MAC_MULTICAST_MASK != 0
+
+    raise SecurityError,
+      "nonce state file must not be copied from another machine"
+  end
+
+  def _verify_nonce_below_maximum_value(state)
+    raise SecurityError, "nonce counter has reached maximum value" if
+      state[2].hex > COUNTER_MAXIMUM_VALUE.hex
   end
 end
