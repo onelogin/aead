@@ -28,9 +28,16 @@ describe AEAD::Cipher do
   end
 
   def twiddle(bytes)
-    index = SecureRandom.random_number(bytes.bytesize)
-    byte  = SecureRandom.random_bytes(1)
+    # pick a random byte to change
+    index  = SecureRandom.random_number(bytes.bytesize)
 
+    # change it by a random offset that won't loop back around to its
+    # original value
+    offset = SecureRandom.random_number(254)
+    ord    = bytes[index].ord
+    byte   = (ord + offset).modulo(256).chr
+
+    # reconstruct the bytes with the twiddled bit inserted in place
     bytes[0..index.pred] << byte << bytes[index.succ..-1]
   end
 
