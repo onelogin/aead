@@ -11,7 +11,7 @@ class AEAD::Cipher
   def initialize(algorithm, key, nonce, aad = nil)
     self.cipher = OpenSSL::Cipher.new(algorithm)
     self.key    = key
-    self.nonce  = nonce
+    self.nonce  = nonce.rjust(self.cipher.iv_len, "\0")
     self.aad    = aad
 
     raise ArgumentError, "key must be #{cipher.key_len} bytes" unless
@@ -40,7 +40,7 @@ class AEAD::Cipher
     self.cipher.send(direction)
 
     self.cipher.key      = self.key
-    self.cipher.iv       = self.nonce.rjust(self.cipher.iv_len, "\0")
+    self.cipher.iv       = self.nonce
     self.cipher.gcm_tag  = tag if tag
     self.cipher.aad      = self.aad if self.aad
 
