@@ -39,16 +39,12 @@ class AEAD::Cipher
   attr_accessor :tag
 
   def perform!(direction, tag)
-    case direction
-      when :encrypt then self.cipher.encrypt
-      when :decrypt then self.cipher.decrypt
-      else raise ArgumentError, 'cipher must be used to encrypt or decrypt'
-    end
+    self.cipher.send(direction)
 
-    self.cipher.key      = key
-    self.cipher.iv       = nonce.rjust(self.cipher.iv_len, "\0")
+    self.cipher.key      = self.key
+    self.cipher.iv       = self.nonce.rjust(self.cipher.iv_len, "\0")
     self.cipher.gcm_tag  = tag if tag
-    self.cipher.aad      = aad if aad
+    self.cipher.aad      = self.aad if self.aad
 
     yield self.cipher
   ensure
