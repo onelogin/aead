@@ -57,7 +57,7 @@ describe AEAD::Nonce do
   it 'must not allow the counter to roll over' do
     self.state_file.open('w') do |io|
       io.write [
-        '0' * 12,
+        '1' * 12,
         '0' *  4,
         '%08x' % (subject.class::COUNTER_MAXIMUM_VALUE.hex - 5),
       ].pack(subject.class::PACK_FORMAT)
@@ -78,6 +78,34 @@ describe AEAD::Nonce do
       subject.shift
 
       io.read.must_equal subject.shift(subject.class::COUNTER_BATCH_SIZE).last
+    end
+  end
+
+  it 'must abort when the nonce state file can be determined to be corrupt' do
+    [1, 11, 13, 500].each do |count|
+      self.state_file.open('w') do |io|
+        io.write SecureRandom.random_bytes(count)
+      end
+
+      -> { subject.shift }.must_raise SecurityError
+    end
+  end
+
+  it 'must abort when the nonce contains the MAC for a different machine' do
+    self.state_file.open('w') do |io|
+      io.write [
+        (SecureRandom.hex(6).hex & ~subject.class::MAC_MULTICAST_MASK).to_s(16),
+        SecureRandom.hex(2),
+        SecureRandom.hex(4),
+      ].pack(subject.class::PACK_FORMAT)
+    end
+
+    -> { subject.shift }.must_raise SecurityError
+  end
+
+  it 'must not abort when the nonce contains a pseudo MAC address' do
+    subject.stub(:mac_address, subject.send(:mac_address_pseudo)) do
+      subject.shift.must_be_kind_of String
     end
   end
 end
