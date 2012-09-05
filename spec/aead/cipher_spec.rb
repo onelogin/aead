@@ -38,7 +38,7 @@ describe AEAD::Cipher do
     byte   = (ord + offset).modulo(256).chr
 
     # reconstruct the bytes with the twiddled bit inserted in place
-    bytes[0..index.pred] << byte << bytes[index.succ..-1]
+    bytes[0, index] << byte << bytes[index.succ..-1]
   end
 
   it 'must produce a tag on encryption' do
