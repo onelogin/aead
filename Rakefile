@@ -3,7 +3,12 @@ require 'rake/version_task'
 require 'cane/rake_task'
 require 'yard'
 
-task :default => %w{ test cane }
+task :default => %w{ build test cane }
+
+task :build do
+  system %{make -C ext/openssl/cipher/aead}
+  system %{cp      ext/openssl/cipher/aead/aead.bundle lib/openssl/cipher}
+end
 
 Rake::TestTask.new do |t|
   t.libs.push 'lib'
