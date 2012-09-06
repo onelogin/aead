@@ -39,15 +39,28 @@ class AEAD::Nonce
   #   octets 9 - 12: counter
   PACK_FORMAT = "H12 H4 H8"
 
+  #
+  # Initializes the nonce generator. Resumes the counter from disk if
+  # it has generated nonces before.
+  #
   def initialize
     self.state_file = STATE_FILE
   end
 
+  #
+  # Called from Object#dup and Object#clone. We must ensure states are
+  # never repeated, so ensure that we wipe internal state.
+  #
   def initialize_copy(other)
     @_state = nil
   end
 
+  #
+  # Returns a nonce from the generator. If a count is passed, returns
+  # an array of nonces.
+  #
   def shift(count = nil)
+    # short-circuit with a single nonce if no argument
     return self.state.pack(PACK_FORMAT) if count.nil?
 
     count.times.map do
@@ -57,14 +70,26 @@ class AEAD::Nonce
 
   protected
 
+  # State file is kept as an accessor to make it easier for tests to
+  # manipulate state externally.
   attr_accessor :state_file
 
+  #
+  # Requests the current state of the nonce generator. Merely
+  # querying the current state bumps its counter to the next value,
+  # helping ensure we never return the same nonce twice.
+  #
   def state
     @_state ||= load_state
     @_state[0..2]
   ensure
+    # don't bump the state if we raised an exception and didin't
+    # actually return the nonce
     raise if $!
 
+    # after returning the state, bump it to the next one and reload
+    # from the state file if we've exceeded the maximum counter for
+    # the reserved batch
     @_state = bump_state(@_state.dup)
     @_state = load_state if (@_state[2].hex > @_state[3].hex)
   end
