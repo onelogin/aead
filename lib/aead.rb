@@ -118,26 +118,6 @@ module AEAD
     end
   end
 
-  # Constant-time string comparison algorithm:
-  #   1. Break both strings into bytes
-  #   2. XOR the strings together, byte by byte
-  #      (any non-equal bytes will XOR to a nonzero value)
-  #   3. OR the XOR'd bytes together
-  #   4. If the result is nonzero, the strings differed.
-  def constant_time_equals?(left, right)
-    # short-circuit if the lengths are inequal
-    return false if left.bytesize != right.bytesize
-
-    # interleave the two strings' bytes
-    byte_pairs = left.bytes.zip(right.bytes)
-
-    # XOR each pair of bytes together
-    xors = byte_pairs.map {|(l, r)| l ^ r }
-
-    # OR all the results together to see if any bytes were different
-    0 == xors.inject {|result, xor| result | xor }
-  end
-
   private_class_method
 
   def _generate_key(bits)

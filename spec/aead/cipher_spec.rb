@@ -1,102 +1,44 @@
 require 'spec_helper'
-
 require 'aead/cipher'
 
 describe AEAD::Cipher do
-  subject { cipher(self.algo, self.key, self.nonce, self.aad) }
+  subject { AEAD::Cipher }
 
-  let(:algo)      { 'aes-256-gcm' }
-  let(:key)       { AEAD.generate_key_256_bits }
-  let(:nonce)     { AEAD::Nonce.generate }
-  let(:aad)       { SecureRandom.random_bytes }
-  let(:plaintext) { 'plaintext' }
+  let(:aes_256_gcm)              { subject.new('aes-256-gcm') }
+  let(:aes_256_ctr_hmac_sha_256) { subject.new('aes-256-ctr-hmac-sha-256') }
 
-  def cipher(algo, key, nonce, aad)
-    AEAD::Cipher.new(algo, key, nonce, aad)
+  it 'must instantiate subclasses' do
+    subject.new('aes-256-gcm').
+      must_equal AEAD::Cipher::AES_256_GCM
+
+    subject.new('aes-256-ctr-hmac-sha-256').
+      must_equal AEAD::Cipher::AES_256_CTR_HMAC_SHA_256
   end
 
-  def do_encryption(cipher, plaintext)
-    cipher.encrypt do |cipher|
-      [ cipher.update(plaintext) + cipher.final, cipher.gcm_tag ]
-    end
+  it 'must generate nonces' do
+    self.aes_256_ctr_hmac_sha_256.generate_nonce.bytesize.
+      must_equal self.aes_256_ctr_hmac_sha_256.nonce_len
   end
 
-  def do_decryption(cipher, ciphertext, tag)
-    cipher.decrypt(tag) do |cipher|
-      cipher.update(ciphertext) + cipher.verify
-    end
+  it 'must generate appropriately-sized keys' do
+    self.aes_256_gcm.generate_key.bytesize.
+      must_equal self.aes_256_gcm.key_len
   end
 
-  def twiddle(bytes)
-    # pick a random byte to change
-    index  = SecureRandom.random_number(bytes.bytesize)
+  it 'must compare signatures' do
+    left  = SecureRandom.random_bytes(64)
+    right = SecureRandom.random_bytes(64)
 
-    # change it by a random offset that won't loop back around to its
-    # original value
-    offset = SecureRandom.random_number(254) + 1
-    ord    = bytes[index].ord
-    byte   = (ord + offset).modulo(256).chr
-
-    # reconstruct the bytes with the twiddled bit inserted in place
-    bytes[0, index] << byte << bytes[index.succ..-1]
+    subject.signature_compare(left, right).must_equal false
+    subject.signature_compare(left, left) .must_equal true
   end
 
-  it 'must produce a tag on encryption' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
+  bench 'signature_compare' do
+    assert_performance_constant 0.999999 do |n|
+      left  =                    SecureRandom.random_bytes(10_000)
+      right = left[0 .. n - 1] + SecureRandom.random_bytes(10_000 - n)
 
-    tag         .must_be :kind_of?, String
-    tag.bytesize.must_equal 16
-  end
-
-  it 'must verify legitimate tags during decryption' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-    plaintext       = do_decryption(self.subject, ciphertext, tag)
-
-    plaintext.must_equal self.plaintext
-  end
-
-  it 'must raise an exception when the ciphertext has been manipulated' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-
-    -> { do_decryption self.subject, twiddle(ciphertext), tag }.
-      must_raise OpenSSL::Cipher::CipherError
-  end
-
-  it 'must raise an exception when the tag has been manipulated' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-
-    -> { do_decryption self.subject, ciphertext, twiddle(tag) }.
-      must_raise OpenSSL::Cipher::CipherError
-  end
-
-  it 'must raise an exception when the key has been manipulated' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-    decryptor       = cipher(self.algo, twiddle(self.key), self.nonce, self.aad)
-
-    -> { do_decryption(decryptor, ciphertext, tag) }.
-      must_raise OpenSSL::Cipher::CipherError
-  end
-
-  it 'must raise an exception when the nonce has been manipulated' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-    decryptor       = cipher(self.algo, self.key, twiddle(self.nonce), self.aad)
-
-    -> { do_decryption(decryptor, ciphertext, tag) }.
-      must_raise OpenSSL::Cipher::CipherError
-  end
-
-  it 'must raise an exception when the AAD has been manipulated' do
-    ciphertext, tag = do_encryption(self.subject, self.plaintext)
-    decryptor       = cipher(self.algo, self.key, self.nonce, twiddle(self.aad))
-
-    -> { do_decryption(decryptor, ciphertext, tag) }.
-      must_raise OpenSSL::Cipher::CipherError
-  end
-
-  it 'must require the nonce to be at least twelve bytes' do
-    [0, 1, 11].map {|count| SecureRandom.random_bytes(count) }.each do |nonce|
-      -> { cipher(self.algo, self.key, nonce, self.aad) }.
-        must_raise ArgumentError
+      10.times { subject.signature_compare(left, right) }
     end
   end
 end
