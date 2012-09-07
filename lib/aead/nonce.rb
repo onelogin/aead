@@ -1,6 +1,7 @@
 require 'aead'
 
 require 'macaddr'
+require 'monitor'
 require 'pathname'
 require 'securerandom'
 
@@ -8,6 +9,8 @@ require 'securerandom'
 # Generates RFC 5114-compliant nonces.
 #
 class AEAD::Nonce
+  include MonitorMixin
+
   # Number of octets in the counter field.
   COUNTER_OCTET_SIZE = 4
 
@@ -45,6 +48,8 @@ class AEAD::Nonce
   #
   def initialize
     self.state_file = STATE_FILE
+
+    super # so the Monitor is initialized
   end
 
   #
@@ -93,6 +98,13 @@ class AEAD::Nonce
     @_state = bump_state(@_state.dup)
     @_state = load_state if (@_state[2].hex > @_state[3].hex)
   end
+
+  def state_with_thread_safety
+    self.synchronize { self.state_without_thread_safety }
+  end
+
+  alias state_without_thread_safety state
+  alias state state_with_thread_safety
 
   private
 

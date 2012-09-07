@@ -54,6 +54,14 @@ describe AEAD::Nonce do
     (t_1.value + t_2.value).length.must_equal(count * 2)
   end
 
+  it 'must be thread-safe' do
+    count   = subject.class::COUNTER_BATCH_SIZE * 5
+    thread  = -> { Set.new.tap {|s| count.times { s << subject.shift } } }
+    threads = 5.times.map { Thread.new(&thread) }
+
+    threads.map(&:value).inject(&:+).length.must_equal(count * 5)
+  end
+
   it 'must not allow the counter to roll over' do
     self.state_file.open('w') do |io|
       io.write [
