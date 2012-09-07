@@ -43,8 +43,21 @@ class AEAD::Nonce
   PACK_FORMAT = "H12 H4 H8"
 
   #
+  # Generates an RFC 5114-compliant nonce suitable for use in AEAD
+  # encryption modes.
+  #
+  # @return [String] a 12-byte nonce
+  #
+  def self.generate
+    @instance ||= self.new
+    @instance.shift
+  end
+
+  #
   # Initializes the nonce generator. Resumes the counter from disk if
   # it has generated nonces before.
+  #
+  # @return [Nonce] the generator
   #
   def initialize
     self.state_file = STATE_FILE
@@ -63,6 +76,9 @@ class AEAD::Nonce
   #
   # Returns a nonce from the generator. If a count is passed, returns
   # an array of nonces.
+  #
+  # @param [nil, Integer] count the number of nonces to return
+  # @return [String, Array<String>] a single nonce or array of nonces
   #
   def shift(count = nil)
     # short-circuit with a single nonce if no argument
@@ -159,7 +175,7 @@ class AEAD::Nonce
     "%08x" % (counter.hex + increment)
   end
 
- private
+  private
 
   def open_state_file
     self.state_file.open(File::CREAT | File::RDWR, 0600) do |io|

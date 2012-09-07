@@ -7,7 +7,7 @@ describe AEAD::Cipher do
 
   let(:algo)      { 'aes-256-gcm' }
   let(:key)       { AEAD.generate_key_256_bits }
-  let(:nonce)     { AEAD.generate_nonce }
+  let(:nonce)     { AEAD::Nonce.generate }
   let(:aad)       { SecureRandom.random_bytes }
   let(:plaintext) { 'plaintext' }
 

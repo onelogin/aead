@@ -28,27 +28,6 @@ module AEAD
   end
 
   #
-  # Generates an RFC 5116 compliant nonce for use with AEAD encryption
-  # modes.
-  #
-  # @return [String] 12-octet nonce
-  #
-  def generate_nonce
-    _nonces.shift
-  end
-
-  #
-  # Generates multiple RFC 5116 compliant nonces for use with AEAD
-  # encryption modes.
-  #
-  # @param [Integer] count the number of nonces to generate
-  # @return [Array<String>] an array of 12-octet nonces
-  #
-  def generate_nonces(count)
-    _nonces.shift(count)
-  end
-
-  #
   # Encrypts a plaintext with AES-256-CTR and appends an HMAC
   # generated from the ciphertext and associated authentication
   # data.
@@ -163,9 +142,5 @@ module AEAD
 
   def _generate_key(bits)
     SecureRandom.random_bytes(bits / BYTE_SIZE)
-  end
-
-  def _nonces
-    @nonces ||= AEAD::Nonce.new
   end
 end
