@@ -12,10 +12,10 @@ describe AEAD::Cipher::AES_256_GCM do
   let(:plaintext) { SecureRandom.random_bytes }
 
   it 'must decrypt its own ciphertexts' do
-    ciphertext = subject.encrypt(self.nonce, 'plaintext', self.aad)
-    plaintext  = subject.decrypt(self.nonce, ciphertext,  self.aad)
+    ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
+    plaintext  = subject.decrypt(self.nonce, self.aad, ciphertext)
 
-    plaintext.must_equal 'plaintext'
+    plaintext.must_equal self.plaintext
   end
 
   it 'must require a 256-bit or larger key' do
@@ -47,46 +47,46 @@ describe AEAD::Cipher::AES_256_GCM do
   end
 
   it 'must encrypt plaintexts correctly' do
-    subject.encrypt(self.nonce, self.plaintext, self.aad).
+    subject.encrypt(self.nonce, self.aad, self.plaintext).
       must_equal openssl_encrypt(self.key, self.nonce, self.aad, self.plaintext)
   end
 
   it 'must decrypt ciphertexts correctly' do
     ciphertext = openssl_encrypt(self.key, self.nonce, self.aad, self.plaintext)
 
-    subject.decrypt(self.nonce, ciphertext, self.aad).
+    subject.decrypt(self.nonce, self.aad, ciphertext).
       must_equal openssl_decrypt(self.key, self.nonce, self.aad, ciphertext)
   end
 
   it 'must resist manipulation of the key' do
-    ciphertext = subject.encrypt(self.nonce, self.plaintext, self.aad)
+    ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     cipher     = self.cipher.new twiddle(key)
 
-    -> { cipher.decrypt(self.nonce, ciphertext, self.aad) }.
+    -> { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise OpenSSL::Cipher::CipherError
   end
 
   it 'must resist manipulation of the nonce' do
-    ciphertext = subject.encrypt(self.nonce, self.plaintext, self.aad)
+    ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     nonce      = twiddle(self.nonce)
 
-    -> { self.subject.decrypt(nonce, ciphertext, self.aad) }.
+    -> { self.subject.decrypt(nonce, self.aad, ciphertext) }.
       must_raise OpenSSL::Cipher::CipherError
   end
 
   it 'must resist manipulation of the ciphertext' do
-    ciphertext = subject.encrypt(self.nonce, self.plaintext, self.aad)
+    ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     ciphertext = twiddle(ciphertext)
 
-    -> { self.subject.decrypt(self.nonce, ciphertext, self.aad) }.
+    -> { self.subject.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise OpenSSL::Cipher::CipherError
   end
 
   it 'must resist manipulation of the aad' do
-    ciphertext = subject.encrypt(self.nonce, self.plaintext, self.aad)
+    ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     aad        = twiddle(self.aad)
 
-    -> { self.subject.decrypt(self.nonce, ciphertext, aad) }.
+    -> { self.subject.decrypt(self.nonce, aad, ciphertext) }.
       must_raise OpenSSL::Cipher::CipherError
   end
 

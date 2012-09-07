@@ -69,23 +69,23 @@ class AEAD::Cipher
     self.class.nonce_len
   end
 
-  def encrypt(nonce, plaintext, aad = nil)
+  def encrypt(nonce, aad, plaintext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
 
     self._encrypt(
        _pad_nonce(nonce),
-       plaintext,
-       aad
+       aad,
+       plaintext
     )
   end
 
-  def decrypt(nonce, ciphertext, aad = nil)
+  def decrypt(nonce, aad, ciphertext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
 
     self._decrypt(
       _pad_nonce(nonce),
-      _extract_ciphertext(ciphertext, self.tag_len),
       aad,
+      _extract_ciphertext(ciphertext, self.tag_len),
       _extract_tag(ciphertext, self.tag_len)
     )
   end

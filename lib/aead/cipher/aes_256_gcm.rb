@@ -12,7 +12,7 @@ class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
 
   protected
 
-  def _encrypt(nonce, plaintext, aad)
+  def _encrypt(nonce, aad, plaintext)
     self.cipher(:encrypt) do |cipher|
       cipher.key = self.key
       cipher.iv  = nonce
@@ -22,7 +22,7 @@ class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
     end
   end
 
-  def _decrypt(nonce, ciphertext, aad, tag)
+  def _decrypt(nonce, aad, ciphertext, tag)
     self.cipher(:decrypt) do |cipher|
       cipher.key     = self.key
       cipher.iv      = nonce
