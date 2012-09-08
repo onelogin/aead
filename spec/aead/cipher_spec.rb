@@ -33,12 +33,29 @@ describe AEAD::Cipher do
     subject.signature_compare(left, left) .must_equal true
   end
 
-  bench 'signature_compare' do
-    assert_performance_constant 0.999999 do |n|
-      left  =                    SecureRandom.random_bytes(10_000)
-      right = left[0 .. n - 1] + SecureRandom.random_bytes(10_000 - n)
+  bench 'signature_compare on increasingly similar strings' do
+    assert_performance_constant 0.99999 do |n|
+      left  =                           SecureRandom.random_bytes(10_000)
+      right = left.chars.take(n).join + SecureRandom.random_bytes(10_000 - n)
 
-      10.times { subject.signature_compare(left, right) }
+      10.times { subject.signature_compare(left.downcase, right.downcase) }
+    end
+  end
+
+  bench 'signature_compare on different-sized strings' do
+    assert_performance_constant 0.99999 do |n|
+      left  = SecureRandom.random_bytes(n)
+      right = SecureRandom.random_bytes(n + 1)
+
+      1_000.times { subject.signature_compare(left, right) }
+    end
+  end
+
+  bench 'signature_compare on increasingly large strings' do
+    assert_performance_linear 0.99999 do |n|
+      string = SecureRandom.random_bytes(n * 100)
+
+      subject.signature_compare(string, string)
     end
   end
 end
