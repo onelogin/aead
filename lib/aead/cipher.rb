@@ -2,6 +2,7 @@ require 'aead'
 
 require 'openssl'
 require 'openssl/cipher/aead'
+require 'securerandom'
 
 #
 # Wraps AEAD ciphers in a simplified interface.
