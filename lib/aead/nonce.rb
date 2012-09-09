@@ -66,14 +66,6 @@ class AEAD::Nonce
   end
 
   #
-  # Called from Object#dup and Object#clone. We must ensure states are
-  # never repeated, so ensure that we wipe internal state.
-  #
-  def initialize_copy(other)
-    @_state = nil
-  end
-
-  #
   # Returns a nonce from the generator. If a count is passed, returns
   # an array of nonces.
   #
@@ -123,6 +115,14 @@ class AEAD::Nonce
   alias state state_with_thread_safety
 
   private
+
+  #
+  # Called from Object#dup and Object#clone. We must ensure states are
+  # never repeated, so ensure that we wipe internal state.
+  #
+  def initialize_copy(other)
+    @_state = nil
+  end
 
   #
   # Returns the initial state value:
