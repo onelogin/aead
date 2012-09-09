@@ -8,7 +8,6 @@ describe AEAD::Nonce do
   subject { AEAD::Nonce.new }
 
   before do
-    @t = self.temp_file
     subject.send(:state_file=, self.state_file)
   end
 
