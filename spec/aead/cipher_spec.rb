@@ -52,7 +52,7 @@ describe AEAD::Cipher do
   end
 
   bench 'signature_compare on increasingly large strings' do
-    assert_performance_linear 0.99999 do |n|
+    assert_performance_linear 0.9999 do |n|
       string = SecureRandom.random_bytes(n * 100)
 
       subject.signature_compare(string, string)

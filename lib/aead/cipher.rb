@@ -41,7 +41,7 @@ class AEAD::Cipher
     result = 0
 
     left.length.times do |i|
-      result |= left[i] ^ right[i]
+      result |= left[i] - right[i]
     end
 
     result == 0
