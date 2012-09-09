@@ -111,7 +111,10 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     cipher.iv  = nonce
 
     ciphertext = cipher.update(plaintext) + cipher.final
-    tag        = OpenSSL::HMAC.digest('SHA256', key, ciphertext + nonce + aad)
+    tag        = OpenSSL::HMAC.digest 'SHA256', key,
+      [ ciphertext.length ].pack('Q>') + ciphertext +
+      [ nonce     .length ].pack('Q>') + nonce      +
+      [ aad       .length ].pack('Q>') + aad
 
     ciphertext + tag
   end

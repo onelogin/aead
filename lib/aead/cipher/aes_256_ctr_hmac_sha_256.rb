@@ -18,7 +18,7 @@ class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
       cipher.iv  = nonce
 
       ciphertext = cipher.update(plaintext) + cipher.final
-      mac        = hmac_generate(self.key, nonce, aad, ciphertext)
+      mac        = hmac_generate(self.key, nonce, aad.to_s, ciphertext)
 
       ciphertext + mac
     end
@@ -26,7 +26,7 @@ class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
 
   def _decrypt(nonce, aad, ciphertext, tag)
     raise SecurityError, 'ciphertext failed authentication step' unless
-      hmac_verify(self.key, nonce, aad, ciphertext, tag)
+      hmac_verify(self.key, nonce, aad.to_s, ciphertext, tag)
 
     self.cipher(:decrypt) do |cipher|
       cipher.key = self.key
@@ -37,7 +37,10 @@ class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
   end
 
   def hmac_generate(key, nonce, aad, ciphertext)
-    OpenSSL::HMAC.digest('SHA256', key, ciphertext + nonce + aad.to_s)
+    OpenSSL::HMAC.digest 'SHA256', key,
+      [ ciphertext.length ].pack('Q>') + ciphertext +
+      [ nonce     .length ].pack('Q>') + nonce      +
+      [ aad       .length ].pack('Q>') + aad
   end
 
   def hmac_verify(key, nonce, aad, ciphertext, hmac)
