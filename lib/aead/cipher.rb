@@ -28,12 +28,12 @@ class AEAD::Cipher
 
   def self.signature_compare(left, right)
     # short-circuit if the lengths are inequal
-    return false if left.bytesize != right.bytesize
+    return false if left.to_s.bytesize != right.bytesize
 
     # Constant-time string comparison algorithm:
     #   1. Break both strings into bytes
-    #   2. XOR the strings together, byte by byte
-    #      (any non-equal bytes will XOR to a nonzero value)
+    #   2. Subtract the strings from one-another, byte by byte
+    #      (any non-equal bytes will subtract to a nonzero value)
     #   3. OR the XOR'd bytes together
     #   4. If the result is nonzero, the strings differed.
     left   = left.bytes.to_a
