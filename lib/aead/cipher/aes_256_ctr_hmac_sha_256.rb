@@ -25,7 +25,7 @@ class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
   end
 
   def _decrypt(nonce, aad, ciphertext, tag)
-    raise SecurityError, 'ciphertext failed authentication step' unless
+    raise ArgumentError, 'ciphertext failed authentication step' unless
       hmac_verify(self.key, nonce, aad.to_s, ciphertext, tag)
 
     self.cipher(:decrypt) do |cipher|

@@ -208,7 +208,7 @@ class AEAD::Nonce
   def _verify_nonce_state(state)
     return if state
 
-    raise SecurityError,
+    raise ArgumentError,
       "nonce state file corrupt; MANUAL REPAIR REQUIRED, DO NOT RM"
   end
 
@@ -217,12 +217,12 @@ class AEAD::Nonce
       mac_addresses_real.include?(state.first) or
       state.first.hex & MAC_MULTICAST_MASK != 0
 
-    raise SecurityError,
+    raise ArgumentError,
       "nonce state file must not be copied from another machine"
   end
 
   def _verify_nonce_below_maximum_value(state)
-    raise SecurityError, "nonce counter has reached maximum value" if
+    raise ArgumentError, "nonce counter has reached maximum value" if
       state[2].hex > COUNTER_MAXIMUM_VALUE.hex
   end
 end

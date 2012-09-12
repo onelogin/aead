@@ -63,7 +63,7 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     cipher     = self.cipher.new twiddle(key)
 
     -> { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
-      must_raise SecurityError
+      must_raise ArgumentError
   end
 
   it 'must resist manipulation of the nonce' do
@@ -71,7 +71,7 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     nonce      = twiddle(self.nonce)
 
     -> { self.subject.decrypt(nonce, self.aad, ciphertext) }.
-      must_raise SecurityError
+      must_raise ArgumentError
   end
 
   it 'must resist manipulation of the ciphertext' do
@@ -79,7 +79,7 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     ciphertext = twiddle(ciphertext)
 
     -> { self.subject.decrypt(self.nonce, self.aad, ciphertext) }.
-      must_raise SecurityError
+      must_raise ArgumentError
   end
 
   it 'must resist manipulation of the aad' do
@@ -87,7 +87,7 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     aad        = twiddle(self.aad)
 
     -> { self.subject.decrypt(self.nonce, aad, ciphertext) }.
-      must_raise SecurityError
+      must_raise ArgumentError
   end
 
   def twiddle(bytes)
