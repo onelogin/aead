@@ -21,7 +21,13 @@ Rake::TestTask.new do |t|
   t.verbose    = true
 end
 
-Cane::RakeTask.new
+if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'ruby'
+  require 'cane/rake_task'
+
+  task :default => :cane
+
+  Cane::RakeTask.new
+end
 
 Rake::VersionTask.new do |t|
   t.with_git_tag = true
