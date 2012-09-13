@@ -101,7 +101,9 @@ describe AEAD::Nonce do
   it 'must abort when the nonce contains the MAC for a different machine' do
     self.state_file.open('w') do |io|
       io.write [
-        (SecureRandom.hex(6).hex & ~subject.class::MAC_MULTICAST_MASK).to_s(16),
+        # FIXME: use ~MAC_MULTICAST_MASK, but figure out how to do so
+        # reliably given Ruby's inability to do binary math correctly :(
+        (SecureRandom.hex(6).hex & 0x101111111111).to_s(16),
         SecureRandom.hex(2),
         SecureRandom.hex(4),
       ].pack(subject.class::PACK_FORMAT)
