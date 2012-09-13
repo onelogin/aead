@@ -1,9 +1,8 @@
 require 'rake/testtask'
 require 'rake/version_task'
-require 'cane/rake_task'
 require 'yard'
 
-task :default => %w{ build test cane }
+task :default => %w{ build test }
 
 task :build do
   Dir.chdir('ext/openssl/cipher/aead') do
