@@ -103,7 +103,7 @@ describe AEAD::Nonce do
       io.write [
         # FIXME: use ~MAC_MULTICAST_MASK, but figure out how to do so
         # reliably given Ruby's inability to do binary math correctly :(
-        (SecureRandom.hex(6).hex & 0x101111111111).to_s(16),
+        (SecureRandom.hex(6).hex & 0xfeffffffffff).to_s(16),
         SecureRandom.hex(2),
         SecureRandom.hex(4),
       ].pack(subject.class::PACK_FORMAT)
