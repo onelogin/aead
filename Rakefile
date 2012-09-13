@@ -6,8 +6,11 @@ require 'yard'
 task :default => %w{ build test cane }
 
 task :build do
-  system %{make -C ext/openssl/cipher/aead}
-  system %{cp      ext/openssl/cipher/aead/aead.bundle lib/openssl/cipher}
+  Dir.chdir('ext/openssl/cipher/aead') do
+    system %{ruby extconf.rb}
+    system %{make}
+    system %{cp aead.bundle ../../../../lib/openssl/cipher}
+  end
 end
 
 Rake::TestTask.new do |t|
