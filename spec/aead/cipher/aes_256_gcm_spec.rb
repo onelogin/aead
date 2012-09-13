@@ -98,7 +98,7 @@ describe AEAD::Cipher::AES_256_GCM do
     # original value
     offset = SecureRandom.random_number(254) + 1
     ord    = bytes[index].ord
-    byte   = (ord + offset).modulo(256).chr
+    byte   = (ord + offset).modulo(256).chr.encode('ASCII-8BIT')
 
     # reconstruct the bytes with the twiddled bit inserted in place
     bytes[0, index] << byte << bytes[index.succ..-1]
