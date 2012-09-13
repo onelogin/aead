@@ -72,7 +72,7 @@ describe AEAD::Nonce do
 
     subject.shift(5)
 
-    -> { subject.shift }.must_raise SecurityError
+    -> { subject.shift }.must_raise ArgumentError
   end
 
   it 'must reserve chunks of nonces in the state file' do
@@ -94,7 +94,7 @@ describe AEAD::Nonce do
         io.write SecureRandom.random_bytes(count)
       end
 
-      -> { subject.shift }.must_raise SecurityError
+      -> { subject.shift }.must_raise ArgumentError
     end
   end
 
@@ -107,7 +107,7 @@ describe AEAD::Nonce do
       ].pack(subject.class::PACK_FORMAT)
     end
 
-    -> { subject.shift }.must_raise SecurityError
+    -> { subject.shift }.must_raise ArgumentError
   end
 
   it 'must not abort when the nonce contains a pseudo MAC address' do
