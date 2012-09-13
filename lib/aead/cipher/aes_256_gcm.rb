@@ -1,11 +1,19 @@
 require 'aead/cipher'
 
+#
+# Encrypt plaintext using the Galois Counter Mode of AES.
+#
 class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
   def self.key_len;   32; end
   def self.iv_len;    12; end
   def self.nonce_len; 12; end
   def self.tag_len;   16; end
 
+  #
+  # Instantiates the cipher with a secret key.
+  #
+  # @param [String] key a secret encryption key
+  #
   def initialize(key)
     super('aes-256-gcm', key)
   end

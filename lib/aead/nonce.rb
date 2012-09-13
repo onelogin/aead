@@ -164,6 +164,11 @@ class AEAD::Nonce
     end
   end
 
+  #
+  # Bumps the state provided to the next increment. Ensures that we
+  # haven't exceeded the maximum state value allowed by the nonce
+  # format.
+  #
   def bump_state(state)
     _verify_nonce_below_maximum_value(state)
 
@@ -171,6 +176,9 @@ class AEAD::Nonce
     state
   end
 
+  #
+  # Increments the provided byte-string counter.
+  #
   def bump_counter(counter, increment)
     "%08x" % (counter.hex + increment)
   end

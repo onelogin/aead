@@ -1,11 +1,20 @@
 require 'aead/cipher'
 
+#
+# Encrypt plaintext using the CTR mode of AES and authenticate the
+# result with HMAC-SHA-256.
+#
 class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
   def self.key_len;   32; end
   def self.iv_len;    16; end
   def self.nonce_len; 12; end
   def self.tag_len;   32; end
 
+  #
+  # Initializes the cipher with a given secret encryption key.
+  #
+  # @param [String] key a secret encryption key
+  #
   def initialize(key)
     super('aes-256-ctr', key)
   end
