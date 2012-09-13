@@ -9,7 +9,7 @@ task :build do
   Dir.chdir('ext/openssl/cipher/aead') do
     system %{ruby extconf.rb}
     system %{make}
-    system %{cp aead.bundle ../../../../lib/openssl/cipher}
+    system %{cp aead.{so,bundle} ../../../../lib/openssl/cipher}
   end
 end
 
