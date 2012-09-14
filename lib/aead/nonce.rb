@@ -203,7 +203,7 @@ WARNING:
   for you. If this is _not_ your first time running this program,
   please ensure that the state file, located at
 
-    #{self.state_file.path}
+    #{self.state_file.to_s}
 
   is never deleted or otherwise removed. Its presence is crucial to
   this application's cryptographic security.
