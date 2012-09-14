@@ -196,7 +196,7 @@ class AEAD::Nonce
       end
     end
   rescue Errno::ENOENT
-    STDERR.puts <<-ALERT
+    Kernel.warn <<-ALERT
 ======================================================================
 WARNING:
   Nonce state file does not exist and will be automatically generated

@@ -24,13 +24,17 @@ describe AEAD::Nonce do
   end
 
   it 'must create nonexistent state files with restrictive permissions' do
-    self.state_file.unlink
+    _, err = capture_io do
+      self.state_file.unlink
 
-    subject.shift
+      subject.shift
 
-    self.state_file          .must_be :exist?
-    self.state_file.stat.mode.must_equal 0100600
-    self.state_file.size     .must_equal 12
+      self.state_file          .must_be :exist?
+      self.state_file.stat.mode.must_equal 0100600
+      self.state_file.size     .must_equal 12
+    end
+
+    err.must_match %{WARNING}
   end
 
   it 'must generate 12-byte nonces' do
