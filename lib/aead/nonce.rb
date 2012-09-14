@@ -4,6 +4,7 @@ require 'macaddr'
 require 'monitor'
 require 'pathname'
 require 'securerandom'
+require 'tempfile'
 
 #
 # Generates RFC 5114-compliant nonces.
