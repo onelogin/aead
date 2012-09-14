@@ -195,6 +195,22 @@ class AEAD::Nonce
         io.flock File::LOCK_UN
       end
     end
+  rescue Errno::ENOENT
+    STDERR.puts <<-ALERT
+======================================================================
+WARNING:
+  Nonce state file does not exist and will be automatically generated
+  for you. If this is _not_ your first time running this program,
+  please ensure that the state file, located at
+
+    #{self.state_file.path}
+
+  is never deleted or otherwise removed. Its presence is crucial to
+  this application's cryptographic security.
+======================================================================
+  ALERT
+    self.state_file.open(File::CREAT | File::RDWR) { }
+    retry
   end
 
   def mac_address

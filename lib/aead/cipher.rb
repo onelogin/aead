@@ -96,6 +96,10 @@ class AEAD::Cipher
   #
   # Encrypts a plaintext using the current Cipher.
   #
+  # IMPORTANT: Do not ever encrypt data using the same nonce more than
+  # once given a particular secret key. Doing so will violate the
+  # security guarantees of the AEAD cipher.
+  #
   # @param [String] nonce a unique nonce, never before used with the
   #   current encryption key
   # @param [String] aad arbitrary additional authentication data that
