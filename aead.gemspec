@@ -23,6 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'guard'
   gem.add_development_dependency 'guard-minitest'
+  gem.add_development_dependency 'guard-yard'
   gem.add_development_dependency 'markdown'
   gem.add_development_dependency 'minitest'
   gem.add_development_dependency 'rake'
