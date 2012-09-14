@@ -43,6 +43,23 @@ class AEAD::Nonce
   PACK_FORMAT = "H12 H4 H8"
 
   #
+  # Globally replaces the state file with a tempfile, so testing
+  # doesn't waste valuable nonces in the global state file.
+  #
+  # @param [String] file the tempfile to use
+  #
+  def self.stub_for_testing!(file = Tempfile.new('ruby-aead'))
+    define_method :state_file_with_stub_for_testing do
+      @state_file_stubbed_for_testing ||= Pathname.new(file)
+    end
+
+    alias_method :state_file_without_stub_for_testing, :state_file unless
+      self.instance_methods.include?(:state_file_without_stub_for_testing)
+
+    alias_method :state_file, :state_file_with_stub_for_testing
+  end
+
+  #
   # Generates an RFC 5114-compliant nonce suitable for use in AEAD
   # encryption modes.
   #

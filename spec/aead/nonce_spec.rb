@@ -8,7 +8,7 @@ describe AEAD::Nonce do
   subject { AEAD::Nonce.new }
 
   before do
-    subject.send(:state_file=, self.state_file)
+    subject.class.send(:stub_for_testing!, self.state_file)
   end
 
   after do
