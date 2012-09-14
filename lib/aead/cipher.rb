@@ -37,7 +37,7 @@ class AEAD::Cipher
   end
 
   #
-  # Returns a unique nonce of for the current Cipher.
+  # Returns a unique nonce for the current Cipher.
   #
   # @return [String] a random key
   #
