@@ -102,13 +102,14 @@ class AEAD::Cipher
   #
   # @param [String] nonce a unique nonce, never before used with the
   #   current encryption key
-  # @param [String] aad arbitrary additional authentication data that
+  # @param [String, nil] aad arbitrary additional authentication data that
   #   must later be provided to decrypt the aead
   # @param [String] plaintext arbitrary plaintext
   # @return [String] the generated AEAD
   #
   def encrypt(nonce, aad, plaintext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
+    _verify_plaintext_presence(plaintext)
 
     self._encrypt(
        _pad_nonce(nonce),
@@ -198,6 +199,11 @@ class AEAD::Cipher
   def _verify_nonce_bytesize(nonce, nonce_len)
     raise ArgumentError, "nonce must be at least #{nonce_len} bytes" unless
       nonce.bytesize >= nonce_len
+  end
+
+  def _verify_plaintext_presence(plaintext)
+    raise ArgumentError, 'plaintext must not be empty' unless
+      not plaintext.nil? and not plaintext.empty?
   end
 
   def _pad_nonce(nonce)
