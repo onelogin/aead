@@ -186,7 +186,7 @@ class AEAD::Nonce
   private
 
   def open_state_file
-    self.state_file.open(File::CREAT | File::RDWR, 0600) do |io|
+    self.state_file.open(File::RDWR) do |io|
       begin
         io.flock File::LOCK_EX
         yield io
@@ -209,7 +209,7 @@ WARNING:
   this application's cryptographic security.
 ======================================================================
   ALERT
-    self.state_file.open(File::CREAT | File::RDWR) { }
+    self.state_file.open(File::CREAT, 0600) { }
     retry
   end
 
