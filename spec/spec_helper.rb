@@ -8,6 +8,8 @@ unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   end
 
   SimpleCov.at_exit do
+    SimpleCov.result.format!
+
     path = Pathname.new('coverage/coverage.txt')
     path.dirname.mkpath
     path.open('w') do |io|
