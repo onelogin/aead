@@ -8,7 +8,7 @@ unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   end
 
   SimpleCov.at_exit do
-    Pathname.new('coverage/coverage.txt').open('w') do |io|
+    Pathname.new('coverage/coverage.txt').mkpath.open('w') do |io|
       io << SimpleCov.result.source_files.covered_percent
     end
   end
