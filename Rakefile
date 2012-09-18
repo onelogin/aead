@@ -25,7 +25,9 @@ if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'ruby'
 
   task :default => :cane
 
-  Cane::RakeTask.new
+  Cane::RakeTask.new do |t|
+    t.add_threshold 'coverage/coverage.txt', :>=, 100
+  end
 end
 
 Rake::VersionTask.new do |t|

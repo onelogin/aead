@@ -1,10 +1,18 @@
 require 'simplecov'
 
-SimpleCov.start do
-  command_name 'MiniTest'
-  add_filter   '/spec/'
-  add_filter   '/vendor/'
-end unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+  SimpleCov.start do
+    command_name 'MiniTest'
+    add_filter   '/spec/'
+    add_filter   '/vendor/'
+  end
+
+  SimpleCov.at_exit do
+    Pathname.new('coverage/coverage.txt').open('w') do |io|
+      io << SimpleCov.result.source_files.covered_percent
+    end
+  end
+end
 
 require 'minitest/autorun'
 require 'minitest/pride'
