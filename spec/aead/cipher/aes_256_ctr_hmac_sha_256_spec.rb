@@ -47,8 +47,8 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
   end
 
   it 'must require a non-empty plaintext' do
-    -> { self.subject.encrypt(nonce, nil, self.aad) }.must_raise ArgumentError
-    -> { self.subject.encrypt(nonce, '',  self.aad) }.must_raise ArgumentError
+    -> { self.subject.encrypt(nonce, self.aad, nil) }.must_raise ArgumentError
+    -> { self.subject.encrypt(nonce, self.aad,  '') }.must_raise ArgumentError
   end
 
   it 'must encrypt plaintexts correctly' do
