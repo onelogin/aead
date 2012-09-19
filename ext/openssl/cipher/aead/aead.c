@@ -2,6 +2,8 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#ifdef EVP_CTRL_GCM_SET_TAG
+
 VALUE dOSSL;
 VALUE eCipherError;
 
@@ -146,3 +148,5 @@ Init_aead(void)
     rb_define_method(mOSSLCipher, "gcm_tag=", ossl_cipher_set_tag, 1);
     rb_define_method(mOSSLCipher, "verify",   ossl_cipher_verify,  0);
 }
+
+#endif
