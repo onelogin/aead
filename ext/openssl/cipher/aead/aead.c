@@ -2,8 +2,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#ifdef EVP_CTRL_GCM_SET_TAG
-
 VALUE dOSSL;
 VALUE eCipherError;
 
@@ -94,8 +92,12 @@ ossl_cipher_get_tag(VALUE self)
 
     GetCipher(self, ctx);
 
+#ifndef EVP_CTRL_GCM_GET_TAG
+    ossl_raise(eCipherError, "your version of OpenSSL doesn't support GCM");
+#else
     if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, (unsigned char *)RSTRING_PTR(tag)))
         ossl_raise(eCipherError, NULL);
+#endif
 
     return tag;
 }
@@ -114,8 +116,12 @@ ossl_cipher_set_tag(VALUE self, VALUE data)
 
     GetCipher(self, ctx);
 
+#ifndef EVP_CTRL_GCM_SET_TAG
+    ossl_raise(eCipherError, "your version of OpenSSL doesn't support GCM");
+#else
     if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, in_len, in))
         ossl_raise(eCipherError, NULL);
+#endif
 
     return data;
 }
@@ -148,5 +154,3 @@ Init_aead(void)
     rb_define_method(mOSSLCipher, "gcm_tag=", ossl_cipher_set_tag, 1);
     rb_define_method(mOSSLCipher, "verify",   ossl_cipher_verify,  0);
 }
-
-#endif
