@@ -9,6 +9,7 @@ require 'securerandom'
 #
 class AEAD::Cipher
   autoload :AES_256_GCM,              'aead/cipher/aes_256_gcm'
+  autoload :AES_256_CBC_HMAC_SHA_256, 'aead/cipher/aes_256_cbc_hmac_sha_256'
   autoload :AES_256_CTR_HMAC_SHA_256, 'aead/cipher/aes_256_ctr_hmac_sha_256'
 
   #
