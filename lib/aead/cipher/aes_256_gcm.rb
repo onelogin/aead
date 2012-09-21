@@ -24,7 +24,7 @@ class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
     self.cipher(:encrypt) do |cipher|
       cipher.key = self.key
       cipher.iv  = nonce
-      cipher.aad = aad if aad
+      cipher.aad = aad.to_s if aad
 
       cipher.update(plaintext) + cipher.final + cipher.gcm_tag
     end
@@ -35,7 +35,7 @@ class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
       cipher.key     = self.key
       cipher.iv      = nonce
       cipher.gcm_tag = tag
-      cipher.aad     = aad if aad
+      cipher.aad     = aad.to_s if aad
 
       cipher.update(ciphertext).tap { cipher.verify }
     end
