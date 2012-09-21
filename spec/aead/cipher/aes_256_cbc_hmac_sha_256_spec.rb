@@ -119,9 +119,11 @@ describe AEAD::Cipher::AES_256_CBC_HMAC_SHA_256 do
 
     ciphertext = cipher.update(plaintext) + cipher.final
     tag        = OpenSSL::HMAC.digest 'SHA256', signing_key,
-      [ ciphertext.length ].pack('Q>') + ciphertext +
-      [ nonce     .length ].pack('Q>') + nonce      +
-      [ aad       .length ].pack('Q>') + aad
+      [ 'aes-256-cbc' .length ].pack('Q>') << 'aes-256-cbc'  <<
+      [ encryption_key.length ].pack('Q>') << encryption_key <<
+      [ ciphertext    .length ].pack('Q>') << ciphertext     <<
+      [ nonce         .length ].pack('Q>') << nonce          <<
+      [ aad           .length ].pack('Q>') << aad
 
     ciphertext + tag
   end
