@@ -50,11 +50,11 @@ module AEAD::Cipher::AES_HMAC
 
   def hmac_generate(nonce, aad, ciphertext)
     OpenSSL::HMAC.digest self.class.digest_mode, self.signing_key,
-      [ self.class.cipher_mode.length ].pack('Q>') << self.class.cipher_mode <<
-      [ self.encryption_key   .length ].pack('Q>') << self.encryption_key    <<
-      [ ciphertext            .length ].pack('Q>') << ciphertext             <<
-      [ nonce                 .length ].pack('Q>') << nonce                  <<
-      [ aad                   .length ].pack('Q>') << aad
+      hmac_encode(self.class.cipher_mode) <<
+      hmac_encode(self.encryption_key)    <<
+      hmac_encode(ciphertext)             <<
+      hmac_encode(nonce)                  <<
+      hmac_encode(aad)
   end
 
   def hmac_verify(nonce, aad, ciphertext, hmac)
@@ -62,5 +62,9 @@ module AEAD::Cipher::AES_HMAC
       hmac_generate(nonce, aad, ciphertext),
       hmac
     )
+  end
+
+  def hmac_encode(string)
+    [ string.length ].pack('Q>') << string
   end
 end
