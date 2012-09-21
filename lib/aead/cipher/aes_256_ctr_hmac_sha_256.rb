@@ -17,5 +17,5 @@ class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
   def self.signing_key_len;    32; end
 
   def self.cipher_mode; 'aes-256-ctr'; end
-  def self.digest_mode; 'SHA256' end
+  def self.digest_mode; 'SHA256'; end
 end
