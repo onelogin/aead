@@ -51,7 +51,6 @@ module AEAD::Cipher::AES_HMAC
   def hmac_generate(nonce, aad, ciphertext)
     OpenSSL::HMAC.digest self.class.digest_mode, self.signing_key,
       hmac_encode(self.class.cipher_mode) <<
-      hmac_encode(self.encryption_key)    <<
       hmac_encode(ciphertext)             <<
       hmac_encode(nonce)                  <<
       hmac_encode(aad)
