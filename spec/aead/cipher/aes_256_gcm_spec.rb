@@ -31,9 +31,9 @@ describe AEAD::Cipher::AES_256_GCM do
     end
   end
 
-  it 'must require a 12-byte or larger nonce' do
-    bad_nonces  = [0,   1,  11 ].map {|size| SecureRandom.random_bytes(size) }
-    good_nonces = [12, 13, 256 ].map {|size| SecureRandom.random_bytes(size) }
+  it 'must require a 12-byte nonce' do
+    bad_nonces  = [0, 1, 11, 13 ].map {|size| SecureRandom.random_bytes(size) }
+    good_nonces = [ 12 ]         .map {|size| SecureRandom.random_bytes(size) }
 
     bad_nonces.each do |nonce|
       -> { self.subject.encrypt(nonce, self.plaintext, self.aad) }.

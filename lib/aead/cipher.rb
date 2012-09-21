@@ -199,7 +199,7 @@ class AEAD::Cipher
 
   def _verify_nonce_bytesize(nonce, nonce_len)
     raise ArgumentError, "nonce must be at least #{nonce_len} bytes" unless
-      nonce.bytesize >= nonce_len
+      nonce.bytesize == nonce_len
   end
 
   def _verify_plaintext_presence(plaintext)
