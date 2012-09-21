@@ -39,5 +39,7 @@ class AEAD::Cipher::AES_256_GCM < AEAD::Cipher
 
       cipher.update(ciphertext).tap { cipher.verify }
     end
+  rescue OpenSSL::Cipher::CipherError
+    raise ArgumentError, 'ciphertext failed authentication step'
   end
 end
