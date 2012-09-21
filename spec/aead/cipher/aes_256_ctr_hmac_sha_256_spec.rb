@@ -18,9 +18,9 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     plaintext.must_equal self.plaintext
   end
 
-  it 'must require a 256-bit or larger key' do
-    bad_keys  = [  0,  1,  31 ].map {|size| SecureRandom.random_bytes(size) }
-    good_keys = [ 32, 33, 256 ].map {|size| SecureRandom.random_bytes(size) }
+  it 'must require a 512-bit or larger key' do
+    bad_keys  = [  0,  1, 33, 63 ].map {|size| SecureRandom.random_bytes(size) }
+    good_keys = [ 64, 65, 10_000 ].map {|size| SecureRandom.random_bytes(size) }
 
     bad_keys.each do |key|
       -> { self.cipher.new(key) }.must_raise ArgumentError
@@ -63,9 +63,9 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
       must_equal openssl_decrypt(self.key, self.nonce, self.aad, ciphertext)
   end
 
-  it 'must resist manipulation of the key' do
+  it 'must resist manipulation of the signing key' do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
-    cipher     = self.cipher.new twiddle(key)
+    cipher     = self.cipher.new key[0, 32] << twiddle(key[32, 32])
 
     -> { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise ArgumentError
@@ -110,13 +110,15 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
   end
 
   def openssl_encrypt(key, nonce, aad, plaintext)
-    cipher     = OpenSSL::Cipher.new('aes-256-ctr').encrypt
-    nonce      = nonce.rjust(16, "\0")
-    cipher.key = key
-    cipher.iv  = nonce
+    encryption_key = key[ 0, 32]
+    signing_key    = key[32, 32]
+    cipher         = OpenSSL::Cipher.new('aes-256-ctr').encrypt
+    nonce          = nonce.rjust(16, "\0")
+    cipher.key     = encryption_key
+    cipher.iv      = nonce
 
     ciphertext = cipher.update(plaintext) + cipher.final
-    tag        = OpenSSL::HMAC.digest 'SHA256', key,
+    tag        = OpenSSL::HMAC.digest 'SHA256', signing_key,
       [ ciphertext.length ].pack('Q>') + ciphertext +
       [ nonce     .length ].pack('Q>') + nonce      +
       [ aad       .length ].pack('Q>') + aad
@@ -125,11 +127,13 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
   end
 
   def openssl_decrypt(key, nonce, aad, ciphertext)
+    encryption_key = key[ 0, 32]
+    signing_key    = key[32, 32]
     tag        = ciphertext[ -32 ..  -1 ]
     ciphertext = ciphertext[   0 .. -33 ]
 
     cipher         = OpenSSL::Cipher.new('aes-256-ctr').decrypt
-    cipher.key     = key
+    cipher.key     = encryption_key
     cipher.iv      = nonce.rjust(16, "\0")
 
     cipher.update(ciphertext) + cipher.final

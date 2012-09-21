@@ -1,60 +1,21 @@
 require 'aead/cipher'
+require 'aead/cipher/aes_hmac'
 
 #
 # Encrypt plaintext using the CTR mode of AES and authenticate the
 # result with HMAC-SHA-256.
 #
 class AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 < AEAD::Cipher
-  def self.key_len;   32; end
+  include AEAD::Cipher::AES_HMAC
+
+  def self.key_len;   64; end
   def self.iv_len;    16; end
   def self.nonce_len; 12; end
   def self.tag_len;   32; end
 
-  #
-  # Initializes the cipher with a given secret encryption key.
-  #
-  # @param [String] key a secret encryption key
-  #
-  def initialize(key)
-    super('aes-256-ctr', key)
-  end
+  def self.encryption_key_len; 32; end
+  def self.signing_key_len;    32; end
 
-  protected
-
-  def _encrypt(nonce, aad, plaintext)
-    self.cipher(:encrypt) do |cipher|
-      cipher.key = self.key
-      cipher.iv  = nonce
-
-      ciphertext = cipher.update(plaintext) + cipher.final
-      mac        = hmac_generate(self.key, nonce, aad.to_s, ciphertext)
-
-      ciphertext + mac
-    end
-  end
-
-  def _decrypt(nonce, aad, ciphertext, tag)
-    raise ArgumentError, 'ciphertext failed authentication step' unless
-      hmac_verify(self.key, nonce, aad.to_s, ciphertext, tag)
-
-    self.cipher(:decrypt) do |cipher|
-      cipher.key = self.key
-      cipher.iv  = nonce
-
-      cipher.update(ciphertext) + cipher.final
-    end
-  end
-
-  def hmac_generate(key, nonce, aad, ciphertext)
-    OpenSSL::HMAC.digest 'SHA256', key,
-      [ ciphertext.length ].pack('Q>') + ciphertext +
-      [ nonce     .length ].pack('Q>') + nonce      +
-      [ aad       .length ].pack('Q>') + aad
-  end
-
-  def hmac_verify(key, nonce, aad, ciphertext, hmac)
-    self.class.signature_compare(
-      hmac, hmac_generate(key, nonce, aad, ciphertext)
-    )
-  end
+  def self.cipher_mode; 'aes-256-ctr'; end
+  def self.digest_mode; 'SHA256' end
 end
