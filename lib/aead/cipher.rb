@@ -193,6 +193,9 @@ class AEAD::Cipher
   private
 
   def _verify_key_bytesize(key, key_len)
+    raise ArgumentError, 'no key provided' unless
+      key
+
     raise ArgumentError, "key must be at least #{key_len} bytes" unless
       key.bytesize >= key_len
   end
