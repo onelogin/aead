@@ -64,6 +64,6 @@ module AEAD::Cipher::AES_HMAC
   end
 
   def hmac_encode(string)
-    [ string.length ].pack('Q>') << string
+    [ string.length ].pack('Q<') << string
   end
 end
