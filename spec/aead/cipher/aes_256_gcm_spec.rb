@@ -23,7 +23,7 @@ describe AEAD::Cipher::AES_256_GCM do
     good_keys = [ 32, 33, 256 ].map {|size| SecureRandom.random_bytes(size) }
 
     bad_keys.each do |key|
-      -> { self.cipher.new(key) }.must_raise ArgumentError
+      lambda { self.cipher.new(key) }.must_raise ArgumentError
     end
 
     good_keys.each do |key|
@@ -36,7 +36,7 @@ describe AEAD::Cipher::AES_256_GCM do
     good_nonces = [ 12 ]         .map {|size| SecureRandom.random_bytes(size) }
 
     bad_nonces.each do |nonce|
-      -> { self.subject.encrypt(nonce, self.plaintext, self.aad) }.
+      lambda { self.subject.encrypt(nonce, self.plaintext, self.aad) }.
         must_raise ArgumentError
     end
 
@@ -47,8 +47,8 @@ describe AEAD::Cipher::AES_256_GCM do
   end
 
   it 'must require a non-empty plaintext' do
-    -> { self.subject.encrypt(nonce, self.aad, nil) }.must_raise ArgumentError
-    -> { self.subject.encrypt(nonce, self.aad,  '') }.must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad, nil) }.must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad,  '') }.must_raise ArgumentError
   end
 
   it 'must encrypt plaintexts correctly' do
@@ -67,7 +67,7 @@ describe AEAD::Cipher::AES_256_GCM do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     cipher     = self.cipher.new twiddle(key)
 
-    -> { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
+    lambda { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise ArgumentError
   end
 
@@ -75,7 +75,7 @@ describe AEAD::Cipher::AES_256_GCM do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     nonce      = twiddle(self.nonce)
 
-    -> { self.subject.decrypt(nonce, self.aad, ciphertext) }.
+    lambda { self.subject.decrypt(nonce, self.aad, ciphertext) }.
       must_raise ArgumentError
   end
 
@@ -83,7 +83,7 @@ describe AEAD::Cipher::AES_256_GCM do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     ciphertext = twiddle(ciphertext)
 
-    -> { self.subject.decrypt(self.nonce, self.aad, ciphertext) }.
+    lambda { self.subject.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise ArgumentError
   end
 
@@ -91,7 +91,7 @@ describe AEAD::Cipher::AES_256_GCM do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
     aad        = twiddle(self.aad)
 
-    -> { self.subject.decrypt(self.nonce, aad, ciphertext) }.
+    lambda { self.subject.decrypt(self.nonce, aad, ciphertext) }.
       must_raise ArgumentError
   end
 
@@ -130,4 +130,4 @@ describe AEAD::Cipher::AES_256_GCM do
 
     cipher.update(ciphertext).tap { cipher.verify }
   end
-end
+end if OpenSSL::Cipher.ciphers.include?('aes-256-gcm')

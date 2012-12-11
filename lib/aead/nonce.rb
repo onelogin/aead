@@ -51,7 +51,7 @@ class AEAD::Nonce
   #
   def self.stub_for_testing!(file = Tempfile.new('ruby-aead'))
     define_method :state_file_with_stub_for_testing do
-      @state_file_stubbed_for_testing ||= Pathname.new(file)
+      @state_file_stubbed_for_testing ||= Pathname.new(file.path)
     end
 
     alias_method :state_file_without_stub_for_testing, :state_file unless

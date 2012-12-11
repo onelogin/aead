@@ -59,7 +59,7 @@ describe AEAD::Nonce do
 
   it 'must be thread-safe' do
     count   = subject.class::COUNTER_BATCH_SIZE * 5
-    thread  = -> { Set.new.tap {|s| count.times { s << subject.shift } } }
+    thread  = lambda { Set.new.tap {|s| count.times { s << subject.shift } } }
     threads = 5.times.map { Thread.new(&thread) }
 
     threads.map(&:value).inject(&:+).length.must_equal(count * 5)
@@ -76,7 +76,7 @@ describe AEAD::Nonce do
 
     subject.shift(5)
 
-    -> { subject.shift }.must_raise ArgumentError
+    lambda { subject.shift }.must_raise ArgumentError
   end
 
   it 'must reserve chunks of nonces in the state file' do
@@ -98,7 +98,7 @@ describe AEAD::Nonce do
         io.write SecureRandom.random_bytes(count)
       end
 
-      -> { subject.shift }.must_raise ArgumentError
+      lambda { subject.shift }.must_raise ArgumentError
     end
   end
 
@@ -113,7 +113,7 @@ describe AEAD::Nonce do
       ].pack(subject.class::PACK_FORMAT)
     end
 
-    -> { subject.shift }.must_raise ArgumentError
+    lambda { subject.shift }.must_raise ArgumentError
   end
 
   it 'must not abort when the nonce contains a pseudo MAC address' do
