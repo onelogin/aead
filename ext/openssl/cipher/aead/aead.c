@@ -72,7 +72,7 @@ ossl_cipher_set_aad(VALUE self, VALUE data)
     StringValue(data);
 
     in     = (unsigned char *) RSTRING_PTR(data);
-    in_len = RSTRING_LENINT(data);
+    in_len = RSTRING_LEN(data);
 
     GetCipher(self, ctx);
 
@@ -112,7 +112,7 @@ ossl_cipher_set_tag(VALUE self, VALUE data)
     StringValue(data);
 
     in     = (unsigned char *) RSTRING_PTR(data);
-    in_len = RSTRING_LENINT(data);
+    in_len = RSTRING_LEN(data);
 
     GetCipher(self, ctx);
 
