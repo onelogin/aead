@@ -66,7 +66,7 @@ describe AEAD::Nonce do
   end
 
   it 'must not allow the counter to roll over' do
-    self.state_file.open('w') do |io|
+    self.state_file.open('wb') do |io|
       io.write [
         '1' * 12,
         '0' *  4,
@@ -94,7 +94,7 @@ describe AEAD::Nonce do
 
   it 'must abort when the nonce state file can be determined to be corrupt' do
     [1, 11, 13, 500].each do |count|
-      self.state_file.open('w') do |io|
+      self.state_file.open('wb') do |io|
         io.write SecureRandom.random_bytes(count)
       end
 
@@ -103,7 +103,7 @@ describe AEAD::Nonce do
   end
 
   it 'must abort when the nonce contains the MAC for a different machine' do
-    self.state_file.open('w') do |io|
+    self.state_file.open('wb') do |io|
       io.write [
         # FIXME: use ~MAC_MULTICAST_MASK, but figure out how to do so
         # reliably given Ruby's inability to do binary math correctly :(

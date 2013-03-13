@@ -207,7 +207,7 @@ class AEAD::Nonce
   private
 
   def open_state_file
-    self.state_file.open(File::RDWR) do |io|
+    self.state_file.open('r+b') do |io|
       begin
         io.flock File::LOCK_EX
         yield io
