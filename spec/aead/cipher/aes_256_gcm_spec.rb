@@ -31,7 +31,7 @@ describe AEAD::Cipher::AES_256_GCM do
     end
   end
 
-  it 'must require a 12-byte nonce' do
+  it 'must require a 12-byte nonce by default' do
     bad_nonces  = [0, 1, 11, 13 ].map {|size| SecureRandom.random_bytes(size) }
     good_nonces = [ 12 ]         .map {|size| SecureRandom.random_bytes(size) }
 
@@ -46,11 +46,25 @@ describe AEAD::Cipher::AES_256_GCM do
     end
   end
 
-  it 'must require a non-empty plaintext' do
-    lambda { self.subject.encrypt(nonce, self.aad, nil) }
-      .must_raise ArgumentError
-    lambda { self.subject.encrypt(nonce, self.aad,  '') }
-      .must_raise ArgumentError
+  it 'must require a correct length nonce' do
+    cipher = self.cipher.new(self.key, :iv_len => 16)
+    bad_nonces  = [0, 1, 15, 17 ].map {|size| SecureRandom.random_bytes(size) }
+    good_nonces = [ 16 ]         .map {|size| SecureRandom.random_bytes(size) }
+
+    bad_nonces.each do |nonce|
+      lambda { cipher.encrypt(nonce, self.plaintext, self.aad) }.
+          must_raise ArgumentError
+    end
+
+    good_nonces.each do |nonce|
+      cipher.encrypt(nonce, self.plaintext, self.aad).
+          must_be_kind_of String
+    end
+  end
+
+  it 'must accept empty plaintext' do
+    self.subject.encrypt(nonce, self.aad, nil).must_be_kind_of String
+    self.subject.encrypt(nonce, self.aad, '').must_be_kind_of String
   end
 
   it 'must encrypt plaintexts correctly' do

@@ -8,6 +8,7 @@ require 'securerandom'
 # Wraps AEAD ciphers in a simplified interface.
 #
 class AEAD::Cipher
+  autoload :AES_128_GCM,              'aead/cipher/aes_128_gcm'
   autoload :AES_256_GCM,              'aead/cipher/aes_256_gcm'
   autoload :AES_256_CBC_HMAC_SHA_256, 'aead/cipher/aes_256_cbc_hmac_sha_256'
   autoload :AES_256_CTR_HMAC_SHA_256, 'aead/cipher/aes_256_ctr_hmac_sha_256'
@@ -18,7 +19,7 @@ class AEAD::Cipher
   # @param [String] algorithm the AEAD implementation to use
   # @return [Class] the cipher implementation
   #
-  def self.new(algorithm)
+  def self.new(algorithm, options = {})
     # run normal Class#new if we're being called from a subclass
     return super unless self == AEAD::Cipher
 
@@ -110,7 +111,7 @@ class AEAD::Cipher
   #
   def encrypt(nonce, aad, plaintext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
-    _verify_plaintext_presence(plaintext)
+    #_verify_plaintext_presence(plaintext)
 
     self._encrypt(
        _pad_nonce(nonce),
@@ -147,6 +148,8 @@ class AEAD::Cipher
   # The secret key provided by the user.
   attr_accessor :key
 
+  attr_writer :iv_len
+
   #
   # Initializes the cipher.
   #
@@ -155,11 +158,13 @@ class AEAD::Cipher
   # @param [String] key the encryption key supplied by the user
   # @return [Cipher] the initialized Cipher
   #
-  def initialize(algorithm, key)
+  def initialize(algorithm, key, options = {})
     _verify_key_bytesize(key, self.key_len)
 
     self.algorithm = algorithm.dup.freeze
     self.key       = key.dup.freeze
+
+    self.iv_len    = options[:iv_len]
 
     self.freeze
   end
@@ -178,7 +183,7 @@ class AEAD::Cipher
   # @return [Integer] the length of initialization vectors in bytes
   #
   def iv_len
-    self.class.iv_len
+    @iv_len || self.class.iv_len
   end
 
   #
@@ -201,7 +206,7 @@ class AEAD::Cipher
   end
 
   def _verify_nonce_bytesize(nonce, nonce_len)
-    raise ArgumentError, "nonce must be at least #{nonce_len} bytes" unless
+    raise ArgumentError, "nonce must be #{nonce_len} bytes" unless
       nonce.bytesize == nonce_len
   end
 

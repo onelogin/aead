@@ -1,10 +1,10 @@
 require 'spec_helper'
-require 'aead/cipher/aes_256_ctr_hmac_sha_256'
+require 'aead/cipher/aes_128_gcm'
 
-describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
+describe AEAD::Cipher::AES_128_GCM do
   subject { self.cipher.new(self.key) }
 
-  let(:algo)      { 'aes-256-ctr-hmac-sha-256' }
+  let(:algo)      { 'aes-128-gcm' }
   let(:cipher)    { AEAD::Cipher.new(algo) }
   let(:key)       { self.cipher.generate_key }
   let(:nonce)     { self.cipher.generate_nonce }
@@ -18,9 +18,9 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     plaintext.must_equal self.plaintext
   end
 
-  it 'must require a 512-bit or larger key' do
-    bad_keys  = [  0,  1, 33, 63 ].map {|size| SecureRandom.random_bytes(size) }
-    good_keys = [ 64, 65, 10_000 ].map {|size| SecureRandom.random_bytes(size) }
+  it 'must require a 128-bit or larger key' do
+    bad_keys  = [  0,  1,  15 ].map {|size| SecureRandom.random_bytes(size) }
+    good_keys = [ 16, 17, 256 ].map {|size| SecureRandom.random_bytes(size) }
 
     bad_keys.each do |key|
       lambda { self.cipher.new(key) }.must_raise ArgumentError
@@ -31,9 +31,9 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     end
   end
 
-  it 'must require a 16-byte nonce' do
-    bad_nonces  = [0, 1, 15, 17 ].map {|size| SecureRandom.random_bytes(size) }
-    good_nonces = [ 16 ]         .map {|size| SecureRandom.random_bytes(size) }
+  it 'must require a 12-byte nonce by default' do
+    bad_nonces  = [0, 1, 11, 13 ].map {|size| SecureRandom.random_bytes(size) }
+    good_nonces = [ 12 ]         .map {|size| SecureRandom.random_bytes(size) }
 
     bad_nonces.each do |nonce|
       lambda { self.subject.encrypt(nonce, self.plaintext, self.aad) }.
@@ -43,6 +43,22 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
     good_nonces.each do |nonce|
       self.subject.encrypt(nonce, self.plaintext, self.aad).
         must_be_kind_of String
+    end
+  end
+
+  it 'must require a correct length nonce' do
+    cipher = self.cipher.new(self.key, :iv_len => 16)
+    bad_nonces  = [0, 1, 15, 17 ].map {|size| SecureRandom.random_bytes(size) }
+    good_nonces = [ 16 ]         .map {|size| SecureRandom.random_bytes(size) }
+
+    bad_nonces.each do |nonce|
+      lambda { cipher.encrypt(nonce, self.plaintext, self.aad) }.
+          must_raise ArgumentError
+    end
+
+    good_nonces.each do |nonce|
+      cipher.encrypt(nonce, self.plaintext, self.aad).
+          must_be_kind_of String
     end
   end
 
@@ -63,9 +79,9 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
       must_equal openssl_decrypt(self.key, self.nonce, self.aad, ciphertext)
   end
 
-  it 'must resist manipulation of the signing key' do
+  it 'must resist manipulation of the key' do
     ciphertext = subject.encrypt(self.nonce, self.aad, self.plaintext)
-    cipher     = self.cipher.new key[0, 32] << twiddle(key[32, 32])
+    cipher     = self.cipher.new twiddle(key)
 
     lambda { cipher.decrypt(self.nonce, self.aad, ciphertext) }.
       must_raise ArgumentError
@@ -110,33 +126,24 @@ describe AEAD::Cipher::AES_256_CTR_HMAC_SHA_256 do
   end
 
   def openssl_encrypt(key, nonce, aad, plaintext)
-    encryption_key = key[ 0, 32]
-    signing_key    = key[32, 32]
-    cipher         = OpenSSL::Cipher.new('aes-256-ctr').encrypt
-    nonce          = nonce.rjust(16, "\0")
-    cipher.key     = encryption_key
-    cipher.iv      = nonce
+    cipher     = OpenSSL::Cipher.new(self.algo).encrypt
+    cipher.key = key
+    cipher.iv  = nonce
+    cipher.aad = aad if aad
 
-    ciphertext = cipher.update(plaintext) + cipher.final
-    tag        = OpenSSL::HMAC.digest 'SHA256', signing_key,
-      [ 'aes-256-cbc' .length ].pack('Q<') << 'aes-256-ctr'  <<
-      [ ciphertext    .length ].pack('Q<') << ciphertext     <<
-      [ nonce         .length ].pack('Q<') << nonce          <<
-      [ aad           .length ].pack('Q<') << aad
-
-    ciphertext + tag
+    cipher.update(plaintext) + cipher.final + cipher.gcm_tag
   end
 
   def openssl_decrypt(key, nonce, aad, ciphertext)
-    encryption_key = key[ 0, 32]
-    signing_key    = key[32, 32]
-    tag        = ciphertext[ -32 ..  -1 ]
-    ciphertext = ciphertext[   0 .. -33 ]
+    tag        = ciphertext[ -16 ..  -1 ]
+    ciphertext = ciphertext[   0 .. -17 ]
 
-    cipher         = OpenSSL::Cipher.new('aes-256-ctr').decrypt
-    cipher.key     = encryption_key
-    cipher.iv      = nonce.rjust(16, "\0")
+    cipher         = OpenSSL::Cipher.new(self.algo).decrypt
+    cipher.key     = key
+    cipher.iv      = nonce
+    cipher.gcm_tag = tag
+    cipher.aad     = aad if aad
 
-    cipher.update(ciphertext) + cipher.final
+    cipher.update(ciphertext).tap { cipher.verify }
   end
-end if OpenSSL::Cipher.ciphers.include?('aes-256-ctr')
+end if OpenSSL::Cipher.ciphers.include?('aes-128-gcm')

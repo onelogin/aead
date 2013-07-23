@@ -127,6 +127,24 @@ ossl_cipher_set_tag(VALUE self, VALUE data)
 }
 
 static VALUE
+ossl_cipher_set_iv_length(VALUE self, VALUE iv_length)
+{
+    EVP_CIPHER_CTX *ctx;
+    int             ivlen = NUM2INT(iv_length);
+
+    GetCipher(self, ctx);
+
+#ifndef EVP_CTRL_GCM_SET_IVLEN
+    ossl_raise(eCipherError, "your version of OpenSSL doesn't support GCM");
+#else
+    if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, ivlen, NULL))
+        ossl_raise(eCipherError, NULL);
+#endif
+
+    return iv_length;
+}
+
+static VALUE
 ossl_cipher_verify(VALUE self)
 {
     EVP_CIPHER_CTX *ctx;
@@ -149,8 +167,9 @@ Init_aead(void)
 
     eCipherError = rb_define_class_under(mOSSLCipher, "CipherError", eOSSLError);
 
-    rb_define_method(mOSSLCipher, "aad=",     ossl_cipher_set_aad, 1);
-    rb_define_method(mOSSLCipher, "gcm_tag",  ossl_cipher_get_tag, 0);
-    rb_define_method(mOSSLCipher, "gcm_tag=", ossl_cipher_set_tag, 1);
-    rb_define_method(mOSSLCipher, "verify",   ossl_cipher_verify,  0);
+    rb_define_method(mOSSLCipher, "aad=",        ossl_cipher_set_aad,       1);
+    rb_define_method(mOSSLCipher, "gcm_tag",     ossl_cipher_get_tag,       0);
+    rb_define_method(mOSSLCipher, "gcm_tag=",    ossl_cipher_set_tag,       1);
+    rb_define_method(mOSSLCipher, "gcm_iv_len=", ossl_cipher_set_iv_length, 1);
+    rb_define_method(mOSSLCipher, "verify",      ossl_cipher_verify,        0);
 }
