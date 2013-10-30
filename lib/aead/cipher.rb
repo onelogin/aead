@@ -109,12 +109,6 @@ class AEAD::Cipher
   # @return [String] the generated AEAD
   #
   def encrypt(nonce, aad, plaintext)
-    if nonce.respond_to?(:force_encoding)
-      nonce    .force_encoding('ASCII-8BIT')
-      aad      .force_encoding('ASCII-8BIT')
-      plaintext.force_encoding('ASCII-8BIT')
-    end
-
     _verify_nonce_bytesize(nonce, self.nonce_len)
     _verify_plaintext_presence(plaintext)
 
@@ -135,12 +129,6 @@ class AEAD::Cipher
   # @return [String] the original plaintext
   #
   def decrypt(nonce, aad, aead)
-    if nonce.respond_to?(:force_encoding)
-      nonce.force_encoding('ASCII-8BIT')
-      aad  .force_encoding('ASCII-8BIT')
-      aead .force_encoding('ASCII-8BIT')
-    end
-
     _verify_nonce_bytesize(nonce, self.nonce_len)
 
     self._decrypt(
