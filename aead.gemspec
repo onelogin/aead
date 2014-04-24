@@ -16,6 +16,8 @@ Gem::Specification.new do |gem|
   gem.extensions  = `git ls-files -- ext/*.rb`.split("\n")
   gem.executables = `git ls-files -- script/*`.split("\n").map {|e| e[7..-1] }
   gem.test_files  = `git ls-files -- spec/*`  .split("\n")
+  
+  gem.licenses    = ['MIT']
 
   gem.add_dependency 'macaddr', '~> 1'
 
