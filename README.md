@@ -23,8 +23,8 @@ require 'aead'
 
 # currently, AES-256-GCM and AES-256-CTR-HMAC-SHA-256 are supported
 mode   = AEAD::Cipher.new('AES-256-GCM')
-key    = cipher.generate_key
-nonce  = cipher.generate_nonce
+key    = mode.generate_key
+nonce  = mode.generate_nonce
 
 cipher    = mode.new(key)
 aead      = cipher.encrypt(nonce, 'authentication data', 'plaintext')
