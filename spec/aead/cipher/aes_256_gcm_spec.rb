@@ -47,8 +47,10 @@ describe AEAD::Cipher::AES_256_GCM do
   end
 
   it 'must require a non-empty plaintext' do
-    lambda { self.subject.encrypt(nonce, self.aad, nil) }.must_raise ArgumentError
-    lambda { self.subject.encrypt(nonce, self.aad,  '') }.must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad, nil) }
+      .must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad,  '') }
+      .must_raise ArgumentError
   end
 
   it 'must encrypt plaintexts correctly' do

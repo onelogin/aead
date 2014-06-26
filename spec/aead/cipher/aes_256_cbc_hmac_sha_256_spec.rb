@@ -32,8 +32,10 @@ describe AEAD::Cipher::AES_256_CBC_HMAC_SHA_256 do
   end
 
   it 'must require a 16-byte nonce' do
-    bad_nonces  = [ 0, 1, 15, 17 ].map {|size| SecureRandom.random_bytes(size) }
-    good_nonces = [ 16 ]          .map {|size| SecureRandom.random_bytes(size) }
+    bad_nonces  = [ 0, 1, 15, 17 ]
+      .map { |size| SecureRandom.random_bytes(size) }
+    good_nonces = [ 16 ]
+      .map { |size| SecureRandom.random_bytes(size) }
 
     bad_nonces.each do |nonce|
       lambda { self.subject.encrypt(nonce, self.plaintext, self.aad) }.
@@ -47,8 +49,10 @@ describe AEAD::Cipher::AES_256_CBC_HMAC_SHA_256 do
   end
 
   it 'must require a non-empty plaintext' do
-    lambda { self.subject.encrypt(nonce, self.aad, nil) }.must_raise ArgumentError
-    lambda { self.subject.encrypt(nonce, self.aad,  '') }.must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad, nil) }
+      .must_raise ArgumentError
+    lambda { self.subject.encrypt(nonce, self.aad,  '') }
+      .must_raise ArgumentError
   end
 
   it 'must encrypt plaintexts correctly' do
