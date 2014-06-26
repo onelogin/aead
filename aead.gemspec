@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.extensions  = `git ls-files -- ext/*.rb`.split("\n")
   gem.executables = `git ls-files -- script/*`.split("\n").map {|e| e[7..-1] }
   gem.test_files  = `git ls-files -- spec/*`  .split("\n")
-  
+
   gem.licenses    = ['MIT']
 
   gem.add_dependency 'macaddr', '~> 1'
@@ -27,7 +27,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'guard-minitest'
   gem.add_development_dependency 'guard-yard'
   gem.add_development_dependency 'markdown'
-  gem.add_development_dependency 'minitest'
+  gem.add_development_dependency 'minitest', '~> 4'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'redcarpet'
   gem.add_development_dependency 'simplecov'
