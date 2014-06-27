@@ -111,7 +111,6 @@ class AEAD::Cipher
   #
   def encrypt(nonce, aad, plaintext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
-    #_verify_plaintext_presence(plaintext)
 
     self._encrypt(
        _pad_nonce(nonce),
