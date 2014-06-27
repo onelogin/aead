@@ -6,10 +6,6 @@ require 'aead/cipher'
 #
 module AEAD::Cipher::AES_GCM
 
-  #def self.included(base)
-  #  base.extend(ClassMethods)
-  #end
-
   #
   # Instantiates the cipher with a secret key.
   #
@@ -22,17 +18,6 @@ module AEAD::Cipher::AES_GCM
   def nonce_len
     iv_len
   end
-
-  #module ClassMethods
-  #  def iv_len
-  #    @iv_len || 12
-  #  end
-  #  def nonce_len; iv_len; end
-  #
-  #  def iv_len=(value)
-  #    @iv_len = value
-  #  end
-  #end
 
   protected
 
