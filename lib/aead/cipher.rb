@@ -111,7 +111,7 @@ class AEAD::Cipher
   #
   def encrypt(nonce, aad, plaintext)
     _verify_nonce_bytesize(nonce, self.nonce_len)
-    
+
     self._encrypt(
        _pad_nonce(nonce),
        aad,
@@ -207,11 +207,6 @@ class AEAD::Cipher
   def _verify_nonce_bytesize(nonce, nonce_len)
     raise ArgumentError, "nonce must be #{nonce_len} bytes" unless
       nonce.bytesize == nonce_len
-  end
-
-  def _verify_plaintext_presence(plaintext)
-    raise ArgumentError, 'plaintext must not be empty' unless
-      not plaintext.nil? and not plaintext.empty?
   end
 
   def _pad_nonce(nonce)
