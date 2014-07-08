@@ -48,11 +48,9 @@ describe AEAD::Cipher::AES_256_CBC_HMAC_SHA_256 do
     end
   end
 
-  it 'must require a non-empty plaintext' do
-    lambda { self.subject.encrypt(nonce, self.aad, nil) }
-      .must_raise ArgumentError
-    lambda { self.subject.encrypt(nonce, self.aad,  '') }
-      .must_raise ArgumentError
+  it 'must accept empty plaintext' do
+    self.subject.encrypt(nonce, self.aad, nil).must_be_kind_of String
+    self.subject.encrypt(nonce, self.aad, '').must_be_kind_of String
   end
 
   it 'must encrypt plaintexts correctly' do

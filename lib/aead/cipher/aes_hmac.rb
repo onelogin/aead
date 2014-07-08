@@ -10,7 +10,7 @@ module AEAD::Cipher::AES_HMAC
   #
   # @param [String] key a secret encryption key
   #
-  def initialize(key)
+  def initialize(key, options = {})
     super(self.class.cipher_mode, key)
   end
 
@@ -29,7 +29,10 @@ module AEAD::Cipher::AES_HMAC
       cipher.key = self.encryption_key
       cipher.iv  = nonce
 
-      ciphertext = cipher.update(plaintext) + cipher.final
+      unless plaintext.nil? || plaintext.empty?
+        ciphertext = cipher.update(plaintext)
+      end
+      ciphertext = (ciphertext || "") + cipher.final
       mac        = hmac_generate(nonce, aad.to_s, ciphertext)
 
       ciphertext << mac
