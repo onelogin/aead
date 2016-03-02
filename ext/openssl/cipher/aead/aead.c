@@ -2,11 +2,26 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+// Hack derived from ruby.h (State Commit 0534b970bc83814e77ea4bd8ba9b2d31fefc9b1e)
+// to derive the EVP_CIPHTER_CTX pointer from the Ruby Openssl\Cipher class
+// after the swap to TypedData_Get_Struct by the ruby builtin openssl extension
+// that prevented just using Data_Get_Struct
+#define Data_Get_Struct_Unsafe(obj,type,sval) \
+    ((sval) = (type*)rb_data_object_get_unsafe(obj))
+
+static inline void *
+rb_data_object_get_unsafe(VALUE obj)
+{
+    //Check_Type(obj, RUBY_T_DATA);
+    return ((struct RData *)obj)->data;
+}
+// --------------------------------------------------------------------------------
+
 VALUE dOSSL;
 VALUE eCipherError;
 
 #define GetCipherInit(obj, ctx) do {                    \
-        Data_Get_Struct((obj), EVP_CIPHER_CTX, (ctx));  \
+        Data_Get_Struct_Unsafe((obj), EVP_CIPHER_CTX, (ctx));  \
     } while (0)
 
 #define GetCipher(obj, ctx) do {                                        \
