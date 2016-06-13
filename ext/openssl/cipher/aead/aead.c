@@ -5,16 +5,15 @@
 VALUE dOSSL;
 VALUE eCipherError;
 
-#define GetCipherInit(obj, ctx) do {                    \
-        Data_Get_Struct((obj), EVP_CIPHER_CTX, (ctx));  \
-    } while (0)
-
-#define GetCipher(obj, ctx) do {                                        \
-        GetCipherInit((obj), (ctx));                                    \
-        if (!(ctx)) {                                                   \
-            ossl_raise(rb_eRuntimeError, "Cipher not inititalized!");   \
-        }                                                               \
-    } while (0)
+#define GetCipherInit(obj, ctx) do { \
+    TypedData_Get_Struct((obj), EVP_CIPHER_CTX, RTYPEDDATA_TYPE(obj), (ctx)); \
+} while (0)
+#define GetCipher(obj, ctx) do { \
+    GetCipherInit((obj), (ctx)); \
+    if (!(ctx)) { \
+	ossl_raise(rb_eRuntimeError, "Cipher not inititalized!"); \
+    } \
+} while (0)
 
 static VALUE
 ossl_make_error(VALUE exc, const char *fmt, va_list args)
@@ -65,7 +64,7 @@ static VALUE
 ossl_cipher_set_aad(VALUE self, VALUE data)
 {
     EVP_CIPHER_CTX *ctx;
-    char           *in      = NULL;
+    unsigned char  *in      = NULL;
     int             in_len  = 0;
     int             out_len = 0;
 
@@ -106,7 +105,7 @@ static VALUE
 ossl_cipher_set_tag(VALUE self, VALUE data)
 {
     EVP_CIPHER_CTX *ctx;
-    char           *in     = NULL;
+    unsigned char  *in     = NULL;
     int             in_len = 0;
 
     StringValue(data);
@@ -131,7 +130,6 @@ ossl_cipher_set_iv_length(VALUE self, VALUE iv_length)
 {
     EVP_CIPHER_CTX *ctx;
     int             ivlen = NUM2INT(iv_length);
-
     GetCipher(self, ctx);
 
 #ifndef EVP_CTRL_GCM_SET_IVLEN
@@ -161,15 +159,13 @@ ossl_cipher_verify(VALUE self)
 void
 Init_aead(void)
 {
-    VALUE mOSSL       = rb_define_module("OpenSSL");
-    VALUE mOSSLCipher = rb_define_class_under(mOSSL, "Cipher", rb_cObject);
-    VALUE eOSSLError  = rb_define_class_under(mOSSL,"OpenSSLError",rb_eStandardError);
+    rb_require("openssl");
+    VALUE cOSSLCipher = rb_path2class("OpenSSL::Cipher");
+    eCipherError = rb_path2class("OpenSSL::Cipher::CipherError");
 
-    eCipherError = rb_define_class_under(mOSSLCipher, "CipherError", eOSSLError);
-
-    rb_define_method(mOSSLCipher, "aad=",        ossl_cipher_set_aad,       1);
-    rb_define_method(mOSSLCipher, "gcm_tag",     ossl_cipher_get_tag,       0);
-    rb_define_method(mOSSLCipher, "gcm_tag=",    ossl_cipher_set_tag,       1);
-    rb_define_method(mOSSLCipher, "gcm_iv_len=", ossl_cipher_set_iv_length, 1);
-    rb_define_method(mOSSLCipher, "verify",      ossl_cipher_verify,        0);
+    rb_define_method(cOSSLCipher, "aad=",        ossl_cipher_set_aad,       1);
+    rb_define_method(cOSSLCipher, "gcm_tag",     ossl_cipher_get_tag,       0);
+    rb_define_method(cOSSLCipher, "gcm_tag=",    ossl_cipher_set_tag,       1);
+    rb_define_method(cOSSLCipher, "gcm_iv_len=", ossl_cipher_set_iv_length, 1);
+    rb_define_method(cOSSLCipher, "verify",      ossl_cipher_verify,        0);
 }
