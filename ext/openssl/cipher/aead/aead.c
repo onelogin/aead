@@ -64,7 +64,7 @@ static VALUE
 ossl_cipher_set_aad(VALUE self, VALUE data)
 {
     EVP_CIPHER_CTX *ctx;
-    char           *in      = NULL;
+    unsigned char  *in      = NULL;
     int             in_len  = 0;
     int             out_len = 0;
 
@@ -105,7 +105,7 @@ static VALUE
 ossl_cipher_set_tag(VALUE self, VALUE data)
 {
     EVP_CIPHER_CTX *ctx;
-    char           *in     = NULL;
+    unsigned char  *in     = NULL;
     int             in_len = 0;
 
     StringValue(data);
