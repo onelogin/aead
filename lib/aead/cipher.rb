@@ -1,6 +1,5 @@
 require 'aead'
 
-require 'openssl'
 require 'openssl/cipher/aead'
 require 'securerandom'
 
