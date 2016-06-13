@@ -1,17 +1,25 @@
 #include <ruby.h>
+#include <ruby/version.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
 VALUE dOSSL;
 VALUE eCipherError;
 
+#if RUBY_API_VERSION_CODE >= 20200
 #define GetCipherInit(obj, ctx) do { \
     TypedData_Get_Struct((obj), EVP_CIPHER_CTX, RTYPEDDATA_TYPE(obj), (ctx)); \
 } while (0)
-#define GetCipher(obj, ctx) do { \
-    GetCipherInit((obj), (ctx)); \
-    if (!(ctx)) { \
-	ossl_raise(rb_eRuntimeError, "Cipher not inititalized!"); \
+#else
+#define GetCipherInit(obj, ctx) do {                \
+    Data_Get_Struct((obj), EVP_CIPHER_CTX, (ctx));  \
+} while (0)
+#endif
+
+#define GetCipher(obj, ctx) do {                                  \
+    GetCipherInit((obj), (ctx));                                  \
+    if (!(ctx)) {                                                 \
+        ossl_raise(rb_eRuntimeError, "Cipher not inititalized!"); \
     } \
 } while (0)
 
